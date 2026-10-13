@@ -1,0 +1,68 @@
+{
+  "name": "maystroon",
+  "version": "0.1.0",
+  "description": "Arabic editorial platform \u2014 Stage 1",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint . --max-warnings=0",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "vitest run",
+    "test:e2e": "playwright test",
+    "db:test": "vitest run tests/database.test.ts",
+    "security:client": "node scripts/check-client-secrets.mjs"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Mtzallqmy/Maystroon.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "UNLICENSED",
+  "bugs": {
+    "url": "https://github.com/Mtzallqmy/Maystroon/issues"
+  },
+  "homepage": "https://github.com/Mtzallqmy/Maystroon#readme",
+  "dependencies": {
+    "@fontsource/ibm-plex-sans-arabic": "5.3.0",
+    "@fontsource/noto-naskh-arabic": "5.3.0",
+    "@hookform/resolvers": "5.9.1",
+    "@radix-ui/react-slot": "1.5.0",
+    "@supabase/ssr": "0.12.7",
+    "@supabase/supabase-js": "2.117.3",
+    "class-variance-authority": "0.7.1",
+    "clsx": "2.1.1",
+    "lucide-react": "1.56.0",
+    "next": "16.4.0",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "react-hook-form": "7.90.0",
+    "server-only": "0.0.1",
+    "tailwind-merge": "3.7.0",
+    "zod": "4.6.7"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "0.5.9",
+    "@playwright/test": "1.64.0",
+    "@sparticuz/chromium": "153.0.0",
+    "@tailwindcss/postcss": "4.3.3",
+    "@types/node": "26.6.5",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "eslint": "9.39.5",
+    "eslint-config-next": "16.4.0",
+    "prettier": "3.9.10",
+    "supabase": "2.120.0",
+    "tailwindcss": "4.3.3",
+    "typescript": "6.0.3",
+    "vitest": "5.0.4"
+  },
+  "private": true,
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "type": "module"
+}
