@@ -1,4 +1,8 @@
 import { test, expect } from "@playwright/test";
+test.skip(
+  process.env.LIVE_SUPABASE_SMOKE === "1",
+  "Unconfigured foundation tests",
+);
 test("Arabic empty foundation, navigation and responsive layout", async ({
   page,
 }, info) => {

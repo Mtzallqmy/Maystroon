@@ -1,4 +1,5 @@
 import "server-only";
+import { cache } from "react";
 import { publicDatabase } from "./supabase";
 import { databaseConfigured } from "./env";
 import { querySchema } from "./validation";
@@ -91,7 +92,7 @@ export async function publicSettings() {
   if (error) throw error;
   return data;
 }
-export async function homeData() {
+export const homeData = cache(async () => {
   if (!databaseConfigured())
     return {
       categories: [] as Category[],
@@ -121,4 +122,4 @@ export async function homeData() {
   } catch {
     return { categories: [], posts: [], ticker: [], state: "error" };
   }
-}
+});

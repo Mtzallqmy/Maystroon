@@ -15,18 +15,22 @@ const sql = readFileSync(
 beforeAll(async () => {
   db = new PGlite();
   await db.exec(
-    `create role anon;create role authenticated;create role service_role bypassrls;create schema auth;create table auth.users(id uuid primary key,email text,email_confirmed_at timestamptz);create function auth.uid() returns uuid language sql stable as $$ select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid $$;grant usage on schema auth to anon,authenticated;grant execute on function auth.uid() to anon,authenticated;`,
+    `create role anon;create role authenticated;create role authenticator;create role service_role bypassrls;create schema auth;create table auth.users(id uuid primary key,email text,email_confirmed_at timestamptz);create function auth.uid() returns uuid language sql stable as $$ select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid $$;grant usage on schema auth to anon,authenticated;grant execute on function auth.uid() to anon,authenticated;`,
   );
-  await db.exec(sql);
+  await db.exec(
+    "create schema storage;create table storage.buckets(id text primary key,name text,public boolean,file_size_limit bigint,allowed_mime_types text[]);",
+  );
+  for (const file of readdirSync("supabase/migrations")
+    .filter((f) => f.endsWith(".sql"))
+    .sort()) {
+    await db.exec(readFileSync("supabase/migrations/" + file, "utf8"));
+  }
 });
 afterAll(async () => {
   await db.close();
 });
 describe("PostgreSQL migration and RLS", () => {
   it("Storage migration is idempotent and excludes executable types", async () => {
-    await db.exec(
-      "create schema storage;create table storage.buckets(id text primary key,name text,public boolean,file_size_limit bigint,allowed_mime_types text[]);",
-    );
     const file = readdirSync("supabase/migrations").find((x) =>
       x.endsWith("_storage.sql"),
     );
@@ -44,6 +48,14 @@ describe("PostgreSQL migration and RLS", () => {
 
   it("replays without duplicates; all tables have RLS", async () => {
     await db.exec(sql);
+    const policySql = readFileSync(
+      "supabase/migrations/" +
+        readdirSync("supabase/migrations").find((x) =>
+          x.endsWith("_optimize_read_policies.sql"),
+        ),
+      "utf8",
+    );
+    await db.exec(policySql);
     const cats = await db.query("select count(*)::int as n from categories");
     expect(cats.rows[0]).toEqual({ n: 6 });
     const r = await db.query(

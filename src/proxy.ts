@@ -22,7 +22,21 @@ export async function proxy(request: NextRequest) {
       },
     },
   });
-  await db.auth.getUser();
+  const {
+    data: { user },
+  } = await db.auth.getUser();
+  if (
+    request.nextUrl.pathname.startsWith("/admin") &&
+    request.nextUrl.pathname !== "/admin/login" &&
+    (!user || !user.email_confirmed_at)
+  ) {
+    const redirect = NextResponse.redirect(
+      new URL("/admin/login", request.url),
+    );
+    response.cookies.getAll().forEach((cookie) => redirect.cookies.set(cookie));
+    redirect.headers.set("Cache-Control", "private, no-store");
+    return redirect;
+  }
   response.headers.set("Cache-Control", "private, no-store");
   return response;
 }

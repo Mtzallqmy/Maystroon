@@ -1,6 +1,6 @@
 # Database
 
-Two migrations: foundation and editorial Storage bucket. Created using Supabase CLI. Foundation can replay safely; seeds use conflict guards, policies/triggers are replaced, and existing owner closure is preserved. Apply ONLY to a dedicated/explicitly selected MAYSTROON database. Do not use unrelated existing projects.
+Migrations: legacy-retirement ledger, foundation, editorial Storage, removal of obsolete pg_net, Data API schema configuration, and optimized read policies. Created using Supabase CLI. Foundation can replay safely; seeds use conflict guards, policies/triggers are replaced, and existing owner closure is preserved. Apply ONLY to a dedicated/explicitly selected MAYSTROON database. Do not use unrelated existing projects.
 
 ## Relations
 
@@ -28,3 +28,7 @@ Every public/private table has RLS. Public content reads require published/publi
 Storage: public `editorial` bucket limited to 5 MiB JPEG/PNG/WebP/AVIF. No upload policies. Published covers only; drafts must use a private bucket in the future. Database MIME checks do not prove file contents; the future upload pipeline must inspect magic bytes/decode/re-encode images before publishing. No SVG upload.
 
 PGlite tests execute real PostgreSQL RLS and migrations against Auth/Storage schema fixtures. They do not test a deployed Supabase Auth/PostgREST/Storage service. Remote advisors and live smoke tests remain required after project selection.
+
+Live verification on the selected project: 14 public application tables + 3 private tables; six categories, four role names, zero posts/users; all application tables have RLS. Old app/radio/api schemas are absent, cron jobs are zero, and only the editorial bucket remains. Anonymous REST reads succeed and direct write/role-read/privileged RPC attempts return permission-denied 42501. Security/performance advisors report no WARN/ERROR notices; private deny-all tables and initially unused indexes generate expected INFO notices.
+
+Authenticated public/staff predicates share one read policy per table to avoid duplicate permissive-policy evaluation. Private-table lack of public policies is intentional deny-all, not a missing access grant. See https://supabase.com/docs/guides/database/database-linter?lint=0008_rls_enabled_no_policy.

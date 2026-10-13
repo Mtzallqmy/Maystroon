@@ -14,10 +14,22 @@ export async function GET() {
       database = "unavailable";
     }
   }
+  const apiConfigured = Boolean(
+    process.env.SUPABASE_SERVICE_ROLE_KEY &&
+    process.env.RATE_LIMIT_SECRET &&
+    process.env.RATE_LIMIT_SECRET.length >= 32,
+  );
   return NextResponse.json(
-    { data: { service: "maystroon", version: "v1", database } },
     {
-      status: database === "ready" ? 200 : 503,
+      data: {
+        service: "maystroon",
+        version: "v1",
+        database,
+        api: apiConfigured ? "configured" : "unconfigured",
+      },
+    },
+    {
+      status: database === "ready" && apiConfigured ? 200 : 503,
       headers: { "Cache-Control": "no-store" },
     },
   );
