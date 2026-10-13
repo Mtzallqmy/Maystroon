@@ -14,6 +14,6 @@ Final local results: production build PASS; strict TypeScript PASS; ESLint (0 wa
 
 Standard Playwright browser download failed in this environment (truncated download). A Chromium 153 binary supplied by the exact-pinned @sparticuz/chromium dev package was decompressed locally and passed via PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH; tests ran on an actual browser. CI uses the normal Playwright browser installation. npm ci --ignore-scripts successfully reconstructed the lockfile dependencies locally.
 
-Remote CI is to be verified after pushing; no remote pass is implied by local checks. Local PostgreSQL tests use PGlite with Auth fixtures and do not replace deployed Supabase integration tests.
+Remote Pull Request CI passed on commit 2897820 (run 38466215839). A subsequent CLI configuration/documentation commit must receive its own check. Pull Request: https://github.com/Mtzallqmy/Maystroon/pull/1. Local PostgreSQL tests use PGlite with Auth fixtures and do not replace deployed Supabase integration tests.
 
 Remaining manual input: identify the Supabase project ref (or explicitly choose organization for new project creation), connect Vercel/import repo and configure environment secrets, complete owner email verification and trusted bootstrap. Do not send PIN or passwords in chat.

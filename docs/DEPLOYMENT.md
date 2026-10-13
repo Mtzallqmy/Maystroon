@@ -32,3 +32,5 @@ Import `Mtzallqmy/Maystroon`, Next.js preset, Node 24, default build `npm run bu
 No connected Vercel tool/credentials were available at implementation, so no remote deployment is claimed. BotKeep is not needed for Stage 1.
 
 After deployment verify direct routes, API, mobile/desktop, empty states, session refresh/logout, verified owner authorization, authenticated reads, no drafts via public API and correct canonical sitemap/metadata. Owner bootstrap and email confirmation require real identity participation.
+
+`supabase/config.toml` configures the optional local stack with no public signup, required email confirmation, no private schema exposure and no duplicate seed file. Hosted Auth settings must be configured separately in the selected project; db push does not apply Auth configuration.
