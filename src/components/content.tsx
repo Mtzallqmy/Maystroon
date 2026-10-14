@@ -19,16 +19,21 @@ export function Empty({
 }
 export function PostCard({ post }: { post: Post }) {
   const host = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const asset = post.thumbnail_asset_id || post.cover_asset_id;
   const safeImage =
     post.cover_image &&
     host &&
     post.cover_image.startsWith(host + "/storage/v1/object/public/editorial/");
   return (
     <article className="card">
-      {safeImage && (
+      {(asset || safeImage) && (
         <Image
           className="cover"
-          src={post.cover_image!}
+          src={
+            asset
+              ? `/api/v1/media/${asset}?variant=thumbnail`
+              : post.cover_image!
+          }
           alt={post.title}
           width={640}
           height={400}

@@ -2,7 +2,8 @@
   "openapi": "3.1.0",
   "info": {
     "title": "MAYSTROON Public API",
-    "version": "1.0.0"
+    "version": "1.1.0",
+    "description": "Published public content and verified-session administration. Android consumers use JSON; write requests send the configured site Origin."
   },
   "servers": [
     {
@@ -124,7 +125,7 @@
             "in": "query",
             "schema": {
               "type": "string",
-              "pattern": "^[a-z0-9-]+$"
+              "description": "Arabic or Latin database slug"
             }
           },
           {
@@ -142,6 +143,13 @@
               "type": "string",
               "enum": ["newest", "oldest"],
               "default": "newest"
+            }
+          },
+          {
+            "name": "author",
+            "in": "query",
+            "schema": {
+              "type": "string"
             }
           }
         ]
@@ -270,6 +278,1484 @@
             "description": "Database or server unavailable"
           }
         }
+      }
+    },
+    "/api/v1/search": {
+      "get": {
+        "summary": "search published posts",
+        "operationId": "search_published_posts",
+        "responses": {
+          "200": {
+            "description": "Succeeded"
+          },
+          "400": {
+            "description": "INVALID_INPUT / invalid operation"
+          },
+          "401": {
+            "description": "UNAUTHORIZED"
+          },
+          "403": {
+            "description": "FORBIDDEN / INVALID_ORIGIN"
+          },
+          "404": {
+            "description": "NOT_FOUND"
+          },
+          "409": {
+            "description": "VERSION_CONFLICT"
+          },
+          "429": {
+            "description": "RATE_LIMITED"
+          },
+          "503": {
+            "description": "Service or required secrets unavailable"
+          }
+        },
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 10000,
+              "default": 1
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50,
+              "default": 12
+            }
+          },
+          {
+            "name": "category",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "description": "Arabic or Latin database slug"
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "maxLength": 100
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": ["newest", "oldest"],
+              "default": "newest"
+            }
+          },
+          {
+            "name": "author",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      }
+    },
+    "/api/v1/categories/{slug}/posts": {
+      "get": {
+        "summary": "category posts",
+        "operationId": "category_posts",
+        "responses": {
+          "200": {
+            "description": "Succeeded"
+          },
+          "400": {
+            "description": "INVALID_INPUT / invalid operation"
+          },
+          "401": {
+            "description": "UNAUTHORIZED"
+          },
+          "403": {
+            "description": "FORBIDDEN / INVALID_ORIGIN"
+          },
+          "404": {
+            "description": "NOT_FOUND"
+          },
+          "409": {
+            "description": "VERSION_CONFLICT"
+          },
+          "429": {
+            "description": "RATE_LIMITED"
+          },
+          "503": {
+            "description": "Service or required secrets unavailable"
+          }
+        },
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 10000,
+              "default": 1
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50,
+              "default": 12
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": ["newest", "oldest"],
+              "default": "newest"
+            }
+          }
+        ]
+      }
+    },
+    "/api/v1/authors/{slug}": {
+      "get": {
+        "summary": "public author",
+        "operationId": "public_author",
+        "responses": {
+          "200": {
+            "description": "Succeeded"
+          },
+          "400": {
+            "description": "INVALID_INPUT / invalid operation"
+          },
+          "401": {
+            "description": "UNAUTHORIZED"
+          },
+          "403": {
+            "description": "FORBIDDEN / INVALID_ORIGIN"
+          },
+          "404": {
+            "description": "NOT_FOUND"
+          },
+          "409": {
+            "description": "VERSION_CONFLICT"
+          },
+          "429": {
+            "description": "RATE_LIMITED"
+          },
+          "503": {
+            "description": "Service or required secrets unavailable"
+          }
+        },
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      }
+    },
+    "/api/v1/trending": {
+      "get": {
+        "summary": "public view aggregates",
+        "operationId": "public_view_aggregates",
+        "responses": {
+          "200": {
+            "description": "Succeeded"
+          },
+          "400": {
+            "description": "INVALID_INPUT / invalid operation"
+          },
+          "401": {
+            "description": "UNAUTHORIZED"
+          },
+          "403": {
+            "description": "FORBIDDEN / INVALID_ORIGIN"
+          },
+          "404": {
+            "description": "NOT_FOUND"
+          },
+          "409": {
+            "description": "VERSION_CONFLICT"
+          },
+          "429": {
+            "description": "RATE_LIMITED"
+          },
+          "503": {
+            "description": "Service or required secrets unavailable"
+          }
+        },
+        "parameters": [
+          {
+            "name": "days",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 30,
+              "default": 7
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50,
+              "default": 10
+            }
+          }
+        ]
+      }
+    },
+    "/api/v1/posts/{id}/comments": {
+      "get": {
+        "summary": "approved comments",
+        "operationId": "approved_comments",
+        "responses": {
+          "200": {
+            "description": "Succeeded"
+          },
+          "400": {
+            "description": "INVALID_INPUT / invalid operation"
+          },
+          "401": {
+            "description": "UNAUTHORIZED"
+          },
+          "403": {
+            "description": "FORBIDDEN / INVALID_ORIGIN"
+          },
+          "404": {
+            "description": "NOT_FOUND"
+          },
+          "409": {
+            "description": "VERSION_CONFLICT"
+          },
+          "429": {
+            "description": "RATE_LIMITED"
+          },
+          "503": {
+            "description": "Service or required secrets unavailable"
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 10000,
+              "default": 1
+            }
+          }
+        ]
+      },
+      "post": {
+        "summary": "submit moderated guest comment",
+        "operationId": "submit_moderated_guest_comment",
+        "responses": {
+          "200": {
+            "description": "Succeeded"
+          },
+          "400": {
+            "description": "INVALID_INPUT / invalid operation"
+          },
+          "401": {
+            "description": "UNAUTHORIZED"
+          },
+          "403": {
+            "description": "FORBIDDEN / INVALID_ORIGIN"
+          },
+          "404": {
+            "description": "NOT_FOUND"
+          },
+          "409": {
+            "description": "VERSION_CONFLICT"
+          },
+          "429": {
+            "description": "RATE_LIMITED"
+          },
+          "503": {
+            "description": "Service or required secrets unavailable"
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["name", "body"],
+                "additionalProperties": false,
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 100
+                  },
+                  "email": {
+                    "type": "string"
+                  },
+                  "body": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 5000,
+                    "description": "Plain text; HTTP links and HTML rejected"
+                  },
+                  "parent_id": {
+                    "type": ["string", "null"],
+                    "format": "uuid"
+                  },
+                  "website": {
+                    "const": ""
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/posts/{id}/views": {
+      "post": {
+        "summary": "record daily bounded view",
+        "operationId": "record_daily_bounded_view",
+        "responses": {
+          "200": {
+            "description": "Succeeded"
+          },
+          "400": {
+            "description": "INVALID_INPUT / invalid operation"
+          },
+          "401": {
+            "description": "UNAUTHORIZED"
+          },
+          "403": {
+            "description": "FORBIDDEN / INVALID_ORIGIN"
+          },
+          "404": {
+            "description": "NOT_FOUND"
+          },
+          "409": {
+            "description": "VERSION_CONFLICT"
+          },
+          "429": {
+            "description": "RATE_LIMITED"
+          },
+          "503": {
+            "description": "Service or required secrets unavailable"
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ]
+      }
+    },
+    "/api/v1/comments/{id}/reports": {
+      "post": {
+        "summary": "report approved comment",
+        "operationId": "report_approved_comment",
+        "responses": {
+          "200": {
+            "description": "Succeeded"
+          },
+          "400": {
+            "description": "INVALID_INPUT / invalid operation"
+          },
+          "401": {
+            "description": "UNAUTHORIZED"
+          },
+          "403": {
+            "description": "FORBIDDEN / INVALID_ORIGIN"
+          },
+          "404": {
+            "description": "NOT_FOUND"
+          },
+          "409": {
+            "description": "VERSION_CONFLICT"
+          },
+          "429": {
+            "description": "RATE_LIMITED"
+          },
+          "503": {
+            "description": "Service or required secrets unavailable"
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["reason"],
+                "properties": {
+                  "reason": {
+                    "type": "string",
+                    "minLength": 3,
+                    "maxLength": 1000
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/posts": {
+      "post": {
+        "summary": "admin posts",
+        "operationId": "admin_posts",
+        "responses": {
+          "200": {
+            "description": "Succeeded"
+          },
+          "400": {
+            "description": "INVALID_INPUT / invalid operation"
+          },
+          "401": {
+            "description": "UNAUTHORIZED"
+          },
+          "403": {
+            "description": "FORBIDDEN / INVALID_ORIGIN"
+          },
+          "404": {
+            "description": "NOT_FOUND"
+          },
+          "409": {
+            "description": "VERSION_CONFLICT"
+          },
+          "429": {
+            "description": "RATE_LIMITED"
+          },
+          "503": {
+            "description": "Service or required secrets unavailable"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Command"
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/transitions": {
+      "post": {
+        "summary": "admin transitions",
+        "operationId": "admin_transitions",
+        "responses": {
+          "200": {
+            "description": "Succeeded"
+          },
+          "400": {
+            "description": "INVALID_INPUT / invalid operation"
+          },
+          "401": {
+            "description": "UNAUTHORIZED"
+          },
+          "403": {
+            "description": "FORBIDDEN / INVALID_ORIGIN"
+          },
+          "404": {
+            "description": "NOT_FOUND"
+          },
+          "409": {
+            "description": "VERSION_CONFLICT"
+          },
+          "429": {
+            "description": "RATE_LIMITED"
+          },
+          "503": {
+            "description": "Service or required secrets unavailable"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Command"
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/revisions": {
+      "post": {
+        "summary": "admin revisions",
+        "operationId": "admin_revisions",
+        "responses": {
+          "200": {
+            "description": "Succeeded"
+          },
+          "400": {
+            "description": "INVALID_INPUT / invalid operation"
+          },
+          "401": {
+            "description": "UNAUTHORIZED"
+          },
+          "403": {
+            "description": "FORBIDDEN / INVALID_ORIGIN"
+          },
+          "404": {
+            "description": "NOT_FOUND"
+          },
+          "409": {
+            "description": "VERSION_CONFLICT"
+          },
+          "429": {
+            "description": "RATE_LIMITED"
+          },
+          "503": {
+            "description": "Service or required secrets unavailable"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Command"
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/categories": {
+      "post": {
+        "summary": "admin categories",
+        "operationId": "admin_categories",
+        "responses": {
+          "200": {
+            "description": "Succeeded"
+          },
+          "400": {
+            "description": "INVALID_INPUT / invalid operation"
+          },
+          "401": {
+            "description": "UNAUTHORIZED"
+          },
+          "403": {
+            "description": "FORBIDDEN / INVALID_ORIGIN"
+          },
+          "404": {
+            "description": "NOT_FOUND"
+          },
+          "409": {
+            "description": "VERSION_CONFLICT"
+          },
+          "429": {
+            "description": "RATE_LIMITED"
+          },
+          "503": {
+            "description": "Service or required secrets unavailable"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Command"
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/authors": {
+      "post": {
+        "summary": "admin authors",
+        "operationId": "admin_authors",
+        "responses": {
+          "200": {
+            "description": "Succeeded"
+          },
+          "400": {
+            "description": "INVALID_INPUT / invalid operation"
+          },
+          "401": {
+            "description": "UNAUTHORIZED"
+          },
+          "403": {
+            "description": "FORBIDDEN / INVALID_ORIGIN"
+          },
+          "404": {
+            "description": "NOT_FOUND"
+          },
+          "409": {
+            "description": "VERSION_CONFLICT"
+          },
+          "429": {
+            "description": "RATE_LIMITED"
+          },
+          "503": {
+            "description": "Service or required secrets unavailable"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Command"
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/ticker": {
+      "post": {
+        "summary": "admin ticker",
+        "operationId": "admin_ticker",
+        "responses": {
+          "200": {
+            "description": "Succeeded"
+          },
+          "400": {
+            "description": "INVALID_INPUT / invalid operation"
+          },
+          "401": {
+            "description": "UNAUTHORIZED"
+          },
+          "403": {
+            "description": "FORBIDDEN / INVALID_ORIGIN"
+          },
+          "404": {
+            "description": "NOT_FOUND"
+          },
+          "409": {
+            "description": "VERSION_CONFLICT"
+          },
+          "429": {
+            "description": "RATE_LIMITED"
+          },
+          "503": {
+            "description": "Service or required secrets unavailable"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Command"
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/media": {
+      "post": {
+        "summary": "admin media",
+        "operationId": "admin_media",
+        "responses": {
+          "200": {
+            "description": "Succeeded"
+          },
+          "400": {
+            "description": "INVALID_INPUT / invalid operation"
+          },
+          "401": {
+            "description": "UNAUTHORIZED"
+          },
+          "403": {
+            "description": "FORBIDDEN / INVALID_ORIGIN"
+          },
+          "404": {
+            "description": "NOT_FOUND"
+          },
+          "409": {
+            "description": "VERSION_CONFLICT"
+          },
+          "429": {
+            "description": "RATE_LIMITED"
+          },
+          "503": {
+            "description": "Service or required secrets unavailable"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Command"
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/comments": {
+      "post": {
+        "summary": "admin comments",
+        "operationId": "admin_comments",
+        "responses": {
+          "200": {
+            "description": "Succeeded"
+          },
+          "400": {
+            "description": "INVALID_INPUT / invalid operation"
+          },
+          "401": {
+            "description": "UNAUTHORIZED"
+          },
+          "403": {
+            "description": "FORBIDDEN / INVALID_ORIGIN"
+          },
+          "404": {
+            "description": "NOT_FOUND"
+          },
+          "409": {
+            "description": "VERSION_CONFLICT"
+          },
+          "429": {
+            "description": "RATE_LIMITED"
+          },
+          "503": {
+            "description": "Service or required secrets unavailable"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Command"
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/bulk": {
+      "post": {
+        "summary": "admin bulk",
+        "operationId": "admin_bulk",
+        "responses": {
+          "200": {
+            "description": "Succeeded"
+          },
+          "400": {
+            "description": "INVALID_INPUT / invalid operation"
+          },
+          "401": {
+            "description": "UNAUTHORIZED"
+          },
+          "403": {
+            "description": "FORBIDDEN / INVALID_ORIGIN"
+          },
+          "404": {
+            "description": "NOT_FOUND"
+          },
+          "409": {
+            "description": "VERSION_CONFLICT"
+          },
+          "429": {
+            "description": "RATE_LIMITED"
+          },
+          "503": {
+            "description": "Service or required secrets unavailable"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Command"
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/publishing": {
+      "post": {
+        "summary": "admin publishing",
+        "operationId": "admin_publishing",
+        "responses": {
+          "200": {
+            "description": "Succeeded"
+          },
+          "400": {
+            "description": "INVALID_INPUT / invalid operation"
+          },
+          "401": {
+            "description": "UNAUTHORIZED"
+          },
+          "403": {
+            "description": "FORBIDDEN / INVALID_ORIGIN"
+          },
+          "404": {
+            "description": "NOT_FOUND"
+          },
+          "409": {
+            "description": "VERSION_CONFLICT"
+          },
+          "429": {
+            "description": "RATE_LIMITED"
+          },
+          "503": {
+            "description": "Service or required secrets unavailable"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Command"
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/data": {
+      "get": {
+        "summary": "authorized admin read",
+        "operationId": "authorized_admin_read",
+        "responses": {
+          "200": {
+            "description": "Succeeded"
+          },
+          "400": {
+            "description": "INVALID_INPUT / invalid operation"
+          },
+          "401": {
+            "description": "UNAUTHORIZED"
+          },
+          "403": {
+            "description": "FORBIDDEN / INVALID_ORIGIN"
+          },
+          "404": {
+            "description": "NOT_FOUND"
+          },
+          "409": {
+            "description": "VERSION_CONFLICT"
+          },
+          "429": {
+            "description": "RATE_LIMITED"
+          },
+          "503": {
+            "description": "Service or required secrets unavailable"
+          }
+        },
+        "parameters": [
+          {
+            "name": "resource",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "enum": [
+                "posts",
+                "categories",
+                "authors",
+                "media",
+                "comments",
+                "ticker",
+                "revisions",
+                "runs"
+              ]
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 10000,
+              "default": 1
+            }
+          },
+          {
+            "name": "post",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "security": [
+          {
+            "session": []
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/media/upload": {
+      "post": {
+        "summary": "Decode image and upload original plus derivatives",
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Succeeded"
+          },
+          "400": {
+            "description": "INVALID_INPUT / invalid operation"
+          },
+          "401": {
+            "description": "UNAUTHORIZED"
+          },
+          "403": {
+            "description": "FORBIDDEN / INVALID_ORIGIN"
+          },
+          "404": {
+            "description": "NOT_FOUND"
+          },
+          "409": {
+            "description": "VERSION_CONFLICT"
+          },
+          "429": {
+            "description": "RATE_LIMITED"
+          },
+          "503": {
+            "description": "Service or required secrets unavailable"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": ["file"],
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "JPEG/PNG/WebP/AVIF/GIF <=5 MiB; hosting transport limit can be lower."
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/media/crop": {
+      "post": {
+        "summary": "crop static source image",
+        "operationId": "crop_static_source_image",
+        "responses": {
+          "200": {
+            "description": "Succeeded"
+          },
+          "400": {
+            "description": "INVALID_INPUT / invalid operation"
+          },
+          "401": {
+            "description": "UNAUTHORIZED"
+          },
+          "403": {
+            "description": "FORBIDDEN / INVALID_ORIGIN"
+          },
+          "404": {
+            "description": "NOT_FOUND"
+          },
+          "409": {
+            "description": "VERSION_CONFLICT"
+          },
+          "429": {
+            "description": "RATE_LIMITED"
+          },
+          "503": {
+            "description": "Service or required secrets unavailable"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "source_id",
+                  "rotation",
+                  "left",
+                  "top",
+                  "width",
+                  "height",
+                  "output_width",
+                  "output_height"
+                ],
+                "properties": {
+                  "source_id": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "rotation": {
+                    "type": "number"
+                  },
+                  "left": {
+                    "type": "number"
+                  },
+                  "top": {
+                    "type": "number"
+                  },
+                  "width": {
+                    "type": "number"
+                  },
+                  "height": {
+                    "type": "number"
+                  },
+                  "output_width": {
+                    "type": "number"
+                  },
+                  "output_height": {
+                    "type": "number"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/preview": {
+      "post": {
+        "summary": "safe editorial preview",
+        "operationId": "safe_editorial_preview",
+        "responses": {
+          "200": {
+            "description": "Succeeded"
+          },
+          "400": {
+            "description": "INVALID_INPUT / invalid operation"
+          },
+          "401": {
+            "description": "UNAUTHORIZED"
+          },
+          "403": {
+            "description": "FORBIDDEN / INVALID_ORIGIN"
+          },
+          "404": {
+            "description": "NOT_FOUND"
+          },
+          "409": {
+            "description": "VERSION_CONFLICT"
+          },
+          "429": {
+            "description": "RATE_LIMITED"
+          },
+          "503": {
+            "description": "Service or required secrets unavailable"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RichDocument"
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ]
+      }
+    },
+    "/api/v1/cron/publish": {
+      "get": {
+        "summary": "protected idempotent publishing fallback",
+        "operationId": "protected_idempotent_publishing_fallback",
+        "responses": {
+          "200": {
+            "description": "Succeeded"
+          },
+          "400": {
+            "description": "INVALID_INPUT / invalid operation"
+          },
+          "401": {
+            "description": "UNAUTHORIZED"
+          },
+          "403": {
+            "description": "FORBIDDEN / INVALID_ORIGIN"
+          },
+          "404": {
+            "description": "NOT_FOUND"
+          },
+          "409": {
+            "description": "VERSION_CONFLICT"
+          },
+          "429": {
+            "description": "RATE_LIMITED"
+          },
+          "503": {
+            "description": "Service or required secrets unavailable"
+          }
+        },
+        "security": [
+          {
+            "cronBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/media/{id}": {
+      "get": {
+        "summary": "published referenced media",
+        "operationId": "published_referenced_media",
+        "responses": {
+          "200": {
+            "description": "Succeeded"
+          },
+          "400": {
+            "description": "INVALID_INPUT / invalid operation"
+          },
+          "401": {
+            "description": "UNAUTHORIZED"
+          },
+          "403": {
+            "description": "FORBIDDEN / INVALID_ORIGIN"
+          },
+          "404": {
+            "description": "NOT_FOUND"
+          },
+          "409": {
+            "description": "VERSION_CONFLICT"
+          },
+          "429": {
+            "description": "RATE_LIMITED"
+          },
+          "503": {
+            "description": "Service or required secrets unavailable"
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "variant",
+            "in": "query",
+            "schema": {
+              "enum": ["original", "optimized", "thumbnail", "social"]
+            }
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/media/{id}": {
+      "get": {
+        "summary": "authorized media {id}",
+        "operationId": "authorized_media_{id}",
+        "responses": {
+          "200": {
+            "description": "Succeeded"
+          },
+          "400": {
+            "description": "INVALID_INPUT / invalid operation"
+          },
+          "401": {
+            "description": "UNAUTHORIZED"
+          },
+          "403": {
+            "description": "FORBIDDEN / INVALID_ORIGIN"
+          },
+          "404": {
+            "description": "NOT_FOUND"
+          },
+          "409": {
+            "description": "VERSION_CONFLICT"
+          },
+          "429": {
+            "description": "RATE_LIMITED"
+          },
+          "503": {
+            "description": "Service or required secrets unavailable"
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "security": [
+          {
+            "session": []
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/media/usage": {
+      "get": {
+        "summary": "authorized media usage",
+        "operationId": "authorized_media_usage",
+        "responses": {
+          "200": {
+            "description": "Succeeded"
+          },
+          "400": {
+            "description": "INVALID_INPUT / invalid operation"
+          },
+          "401": {
+            "description": "UNAUTHORIZED"
+          },
+          "403": {
+            "description": "FORBIDDEN / INVALID_ORIGIN"
+          },
+          "404": {
+            "description": "NOT_FOUND"
+          },
+          "409": {
+            "description": "VERSION_CONFLICT"
+          },
+          "429": {
+            "description": "RATE_LIMITED"
+          },
+          "503": {
+            "description": "Service or required secrets unavailable"
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "security": [
+          {
+            "session": []
+          }
+        ]
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Error": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "object",
+            "properties": {
+              "code": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
+      "Command": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": ["string", "null"],
+            "format": "uuid"
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "patch": {
+            "type": "object"
+          },
+          "action": {
+            "type": "string"
+          },
+          "scheduled_at": {
+            "type": ["string", "null"],
+            "format": "date-time"
+          },
+          "transfer_to": {
+            "type": ["string", "null"],
+            "format": "uuid"
+          },
+          "items": {
+            "type": "array",
+            "maxItems": 50,
+            "items": {
+              "type": "object"
+            }
+          }
+        }
+      },
+      "RichDocument": {
+        "type": "object",
+        "required": ["type", "content"],
+        "properties": {
+          "type": {
+            "const": "doc"
+          },
+          "content": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "session": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "Supabase SSR session",
+        "description": "Project-dependent HttpOnly cookie; exact configured Origin required for writes."
+      },
+      "cronBearer": {
+        "type": "http",
+        "scheme": "bearer"
       }
     }
   }
