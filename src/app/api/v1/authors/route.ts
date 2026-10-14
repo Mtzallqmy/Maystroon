@@ -1,6 +1,7 @@
 import type { NextRequest } from "next/server";
 import { publicApi } from "@/lib/api";
 import { publicDatabase } from "@/lib/supabase";
+import { authorFields } from "@/lib/public-catalog";
 import { querySchema } from "@/lib/validation";
 export async function GET(request: NextRequest) {
   return publicApi(request, async () => {
@@ -11,7 +12,7 @@ export async function GET(request: NextRequest) {
       data: (
         await publicDatabase()
           .from("authors")
-          .select("id,display_name,slug,bio")
+          .select(authorFields)
           .eq("is_active", true)
           .is("deleted_at", null)
           .order("display_name")

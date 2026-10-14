@@ -40,3 +40,11 @@ After deployment verify direct routes, API, mobile/desktop, empty states, sessio
 The database project URL is in `.env.example` and `supabase/project.json`; keys are not committed. Local smoke checks used an ignored `.env.local` with the project's publishable key. Next.js service role, RATE_LIMIT_SECRET and PIN_PEPPER still require secure server environment configuration. Until then public database reads and pages work, but limited application API/auth actions fail closed. Health exposes database/API configuration separately and returns 503 unless both are ready.
 
 Migration filenames match the six remote history versions. The first file is an audit ledger marker for a one-time teardown, deliberately a no-op for fresh installs; its actual reviewed destructive SQL is in operations and must never be run against the new platform. Subsequent migrations reproduce the new schema and policies. Supabase Edge function source uses Deno and is excluded from the Next.js TypeScript program.
+
+## Stage 2 activation
+
+Run the additional CMS, scheduler and policy-review migrations in order; their remote versions are recorded in STAGE_2_REPORT. The selected Supabase instance has pg_cron and active maystroon-publish-due/maystroon-retention jobs. Do not also schedule Vercel Cron unless a fallback is desired; both call the same idempotent engine, but redundant polling is unnecessary.
+
+Set server-only SUPABASE_SERVICE_ROLE_KEY, RATE_LIMIT_SECRET (>=32 characters), PIN_PEPPER, and optional CRON_SECRET (>=32 characters) in Vercel settings. Public URL/publishable key are separate. Set NEXT_PUBLIC_SITE_URL to the exact preview/production origin because write routes validate Origin. The application does not retrieve service-role credentials through the available Supabase connector.
+
+Check /api/v1/health, anonymous reads, login/role/PIN, media upload/download, comment/view rate limits, scheduled publication, direct routes and secret scan on the actual deployment. Verify hosting request limits before permitting maximum-size multipart upload. No Vercel connection or preview deployment was available in this session; importing the official repository and configuring environment settings remains manual. Do not interpret local build/fixture tests as a verified production URL.

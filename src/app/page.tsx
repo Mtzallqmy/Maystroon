@@ -1,11 +1,14 @@
 import Link from "next/link";
 import { BookOpen } from "lucide-react";
-import { homeData, posts } from "@/lib/content";
+import { homeData, posts, popularPosts, featuredPost } from "@/lib/content";
 import { Empty, PostCard } from "@/components/content";
 import { Ticker } from "@/components/ticker";
 export default async function Home() {
   const d = await homeData();
-  const featured = d.posts.find((p) => p.featured);
+  const popular =
+    d.state === "ready" ? await popularPosts().catch(() => []) : [];
+  const featured =
+    d.state === "ready" ? await featuredPost().catch(() => null) : null;
   const sections =
     d.state === "ready"
       ? await Promise.all(
@@ -70,6 +73,19 @@ export default async function Home() {
           <Empty />
         )}
       </section>
+      {popular.length > 0 && (
+        <section className="section">
+          <h2>الأكثر قراءة هذا الأسبوع</h2>
+          <div className="grid">
+            {popular.map((p) => (
+              <div key={p.id}>
+                <PostCard post={p} />
+                <p>{p.views} مشاهدة مسجلة خلال الأسبوع</p>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
       <section className="section">
         <div className="section-heading">
           <h2>أبواب المعرفة</h2>

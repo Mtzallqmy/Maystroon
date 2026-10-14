@@ -4,7 +4,13 @@ export const querySchema = z.object({
   pageSize: z.coerce.number().int().min(1).max(50).default(12),
   category: z
     .string()
-    .regex(/^[a-z0-9-]+$/)
+    .regex(/^[\p{L}\p{N}_-]+$/u)
+    .or(z.literal(""))
+    .optional(),
+  author: z
+    .string()
+    .regex(/^[\p{L}\p{N}_-]+$/u)
+    .or(z.literal(""))
     .optional(),
   q: z.string().trim().max(100).optional(),
   sort: z.enum(["newest", "oldest"]).default("newest"),

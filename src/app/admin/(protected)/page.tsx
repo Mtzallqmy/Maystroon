@@ -1,36 +1,84 @@
 import { requireAdmin } from "@/lib/auth";
-export default async function Dashboard() {
+import Link from "next/link";
+const weekStart = () =>
+  new Date(Date.now() - 7 * 86400000).toISOString().slice(0, 10);
+export default async function Page() {
   const { db, roles } = await requireAdmin();
-  const stats = await Promise.all(
-    ["posts", "categories", "authors"].map(async (table) => {
-      const { count, error } = await db
-        .from(table)
-        .select("id", { head: true, count: "exact" });
-      return { table, count: error ? null : count };
-    }),
-  );
-  const labels: Record<string, string> = {
-    posts: "التدوينات المتاحة",
-    categories: "الأقسام المتاحة",
-    authors: "الكتّاب المتاحون",
-  };
+  const staff = roles.some((r) => ["OWNER", "ADMIN", "EDITOR"].includes(r));
+  const [p, c, v, runs] = await Promise.all([
+    db
+      .from("posts")
+      .select("status", { count: "exact" })
+      .is("deleted_at", null),
+    staff
+      ? db
+          .from("comments")
+          .select("id", { count: "exact", head: true })
+          .eq("status", "pending")
+      : Promise.resolve({ count: 0, error: null }),
+    staff
+      ? db.from("post_view_daily").select("day,views").gte("day", weekStart())
+      : Promise.resolve({ data: [], error: null }),
+    staff
+      ? db
+          .from("publishing_runs")
+          .select("id,status,trigger,reason,created_at")
+          .order("created_at", { ascending: false })
+          .limit(20)
+      : Promise.resolve({ data: [], error: null }),
+  ]);
+  if (p.error || c.error || v.error || runs.error)
+    throw new Error("تعذر تحميل الإحصائيات");
+  const totals = new Map<string, number>();
+  for (const x of v.data || [])
+    totals.set(x.day, (totals.get(x.day) || 0) + Number(x.views));
   return (
     <>
-      <span className="eyebrow">لوحة الإدارة</span>
-      <h1>أهلاً بك في ما يسطرون</h1>
-      <p>صلاحيات الحساب: {roles.join("، ")}</p>
+      <span className="eyebrow">MAYSTROON · استوديو النشر</span>
+      <h1>لوحة التحرير</h1>
       <div className="stats">
-        {stats.map((s) => (
-          <div className="stat" key={s.table}>
-            <span>{labels[s.table]}</span>
-            <strong>{s.count ?? "غير متاح"}</strong>
-          </div>
-        ))}
+        <article>
+          <h2>{p.count || 0}</h2>
+          <p>تدوينات متاحة لحسابك</p>
+        </article>
+        <article>
+          <h2>{p.data?.filter((x) => x.status === "published").length || 0}</h2>
+          <p>منشورة</p>
+        </article>
+        {staff && (
+          <>
+            <article>
+              <h2>{c.count || 0}</h2>
+              <p>تعليقات تنتظر المراجعة</p>
+            </article>
+            <article>
+              <h2>{[...totals.values()].reduce((a, b) => a + b, 0)}</h2>
+              <p>مشاهدات آخر أسبوع</p>
+            </article>
+          </>
+        )}
       </div>
-      <p className="status" style={{ marginTop: 25 }}>
-        أساس الإدارة جاهز. النشر والمحرر المتقدم وإدارة المشرفين تُستكمل في
-        المراحل القادمة.
-      </p>
+      <Link className="button" href="/admin/posts/new">
+        ابدأ تدوينة
+      </Link>
+      {staff && (
+        <>
+          <h2>المشاهدات اليومية</h2>
+          {[...totals].sort().map(([day, total]) => (
+            <p key={day}>
+              {day}: {total}
+            </p>
+          ))}
+          {!totals.size && <p>لا توجد مشاهدات مسجلة.</p>}
+          <h2>سجل النشر</h2>
+          {runs.data?.map((r) => (
+            <p key={r.id}>
+              {r.created_at} · {r.trigger} · {r.status} {r.reason}
+            </p>
+          ))}
+          {!runs.data?.length && <p>لم تُنفذ عمليات نشر بعد.</p>}
+        </>
+      )}
     </>
   );
 }

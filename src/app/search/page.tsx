@@ -1,3 +1,5 @@
+import { publicDatabase } from "@/lib/supabase";
+import { categories } from "@/lib/content";
 import { posts } from "@/lib/content";
 import { databaseConfigured } from "@/lib/env";
 import { Empty, PostCard } from "@/components/content";
@@ -18,18 +20,57 @@ export default async function Search({
       error = true;
     }
   }
+  const cats = databaseConfigured() ? await categories().catch(() => []) : [];
+  const authors = databaseConfigured()
+    ? (
+        await publicDatabase()
+          .from("authors")
+          .select("slug,display_name")
+          .eq("is_active", true)
+          .is("deleted_at", null)
+      ).data || []
+    : [];
   return (
     <section className="prose" style={{ maxWidth: "none" }}>
       <h1>ابحث بين السطور</h1>
       <form action="/search" className="search-form">
         <label style={{ flex: 1 }}>
-          عنوان التدوينة
+          العنوان والملخص والمحتوى
           <input
             name="q"
             defaultValue={p.q || ""}
             maxLength={100}
             placeholder="ما الذي تود قراءته؟"
           />
+        </label>
+        <label>
+          القسم
+          <select name="category" defaultValue={p.category || ""}>
+            <option value="">جميع الأقسام</option>
+            {cats.map((c) => (
+              <option key={c.id} value={c.slug}>
+                {c.name}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label>
+          الكاتب
+          <select name="author" defaultValue={p.author || ""}>
+            <option value="">جميع الكتّاب</option>
+            {authors.map((a) => (
+              <option key={a.slug} value={a.slug}>
+                {a.display_name}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label>
+          الترتيب
+          <select name="sort" defaultValue={p.sort || "newest"}>
+            <option value="newest">الأحدث</option>
+            <option value="oldest">الأقدم</option>
+          </select>
         </label>
         <button className="button" type="submit">
           بحث
@@ -49,6 +90,9 @@ export default async function Search({
                   "/search?" +
                   new URLSearchParams({
                     q: p.q || "",
+                    ...(p.category ? { category: p.category } : {}),
+                    ...(p.author ? { author: p.author } : {}),
+                    ...(p.sort ? { sort: p.sort } : {}),
                     page: String(result.page - 1),
                   })
                 }
@@ -62,6 +106,9 @@ export default async function Search({
                   "/search?" +
                   new URLSearchParams({
                     q: p.q || "",
+                    ...(p.category ? { category: p.category } : {}),
+                    ...(p.author ? { author: p.author } : {}),
+                    ...(p.sort ? { sort: p.sort } : {}),
                     page: String(result.page + 1),
                   })
                 }

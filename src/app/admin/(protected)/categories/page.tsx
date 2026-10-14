@@ -1,32 +1,35 @@
 import { requireAdmin } from "@/lib/auth";
-export default async function Categories() {
-  const { db } = await requireAdmin();
+import Catalog from "@/components/editor/catalog";
+export default async function Page() {
+  const { db, roles } = await requireAdmin();
+  if (!roles.some((r) => ["OWNER", "ADMIN", "EDITOR"].includes(r)))
+    return <p>هذه الإدارة تتطلب صلاحية تحرير.</p>;
   const { data, error } = await db
     .from("categories")
-    .select("id,name,slug,is_active,sort_order")
-    .is("deleted_at", null)
-    .order("sort_order");
+    .select("*")
+    .order("created_at", { ascending: false })
+    .limit(100);
+  if (error) throw new Error("تعذر تحميل العناصر");
   return (
-    <>
-      <h1>إدارة الأقسام</h1>
-      <p className="status">
-        عرض فعلي للأقسام. التحرير يُفعّل في المرحلة الثانية.
-      </p>
-      {error ? (
-        <p>تعذّر قراءة الأقسام.</p>
-      ) : (
-        <div className="grid">
-          {data?.map((c) => (
-            <div className="category-card" key={c.id}>
-              <h3>{c.name}</h3>
-              <span>
-                {c.slug} · {c.is_active ? "ظاهر" : "مخفي"} · الترتيب{" "}
-                {c.sort_order}
-              </span>
-            </div>
-          ))}
-        </div>
-      )}
-    </>
+    <Catalog
+      resource="categories"
+      title="إدارة الأقسام"
+      initial={data}
+      fields={[
+        { key: "name", label: "اسم القسم" },
+        { key: "slug", label: "الرابط الدائم" },
+        {
+          key: "description",
+          label: "الوصف",
+          kind: "textarea",
+          nullable: true,
+        },
+        { key: "sort_order", label: "الترتيب", kind: "number" },
+        { key: "is_active", label: "ظاهر", kind: "boolean" },
+        { key: "parent_id", label: "معرّف القسم الأب", nullable: true },
+        { key: "image_asset_id", label: "معرّف الصورة", nullable: true },
+        { key: "icon", label: "الأيقونة", nullable: true },
+      ]}
+    />
   );
 }
