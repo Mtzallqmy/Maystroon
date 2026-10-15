@@ -124,6 +124,7 @@ export async function storeImage(
 ) {
   const identity = await authorizedUser();
   if (!identity) throw new Error("UNAUTHORIZED");
+  if (!identity.permissions["media.manage"]) throw new Error("FORBIDDEN");
   if (!(await rateLimit(`upload:${identity.user.id}`, 20, 60)))
     throw new Error("RATE_LIMITED");
   const processed = await processImage(bytes, crop);

@@ -1,9 +1,12 @@
 import { notFound, permanentRedirect } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
+import { publicAdvertisements } from "@/lib/control/advertisements";
+import { Advertisements } from "@/components/control/advertisements";
+import { publicCommentOptions } from "@/lib/control/comment-options";
 import { post, posts } from "@/lib/content";
 import { databaseConfigured, siteUrl } from "@/lib/env";
-import { slugRedirect, viewCount, articleAds } from "@/lib/public-catalog";
+import { slugRedirect, viewCount } from "@/lib/public-catalog";
 import {
   renderDocument,
   documentHeadings,
@@ -75,10 +78,11 @@ export default async function Article({
     html = renderDocument(p.content_json);
     headings = documentHeadings(p.content_json);
   } catch {}
-  const [related, stats, ads] = await Promise.all([
+  const [related, stats, ads, commentOptions] = await Promise.all([
     posts({ author: p.authors?.slug, pageSize: "4" }),
     viewCount(p.id),
-    articleAds(`/posts/${p.slug}`),
+    publicAdvertisements(),
+    publicCommentOptions(),
   ]);
   const views = stats;
   const canonical =
@@ -155,6 +159,7 @@ export default async function Article({
             ))}
           </nav>
         )}
+        <Advertisements items={ads} placement="article" />
         <div className="prose article-body">
           {html ? (
             <div dangerouslySetInnerHTML={{ __html: html }} />
@@ -180,33 +185,26 @@ export default async function Article({
             </ol>
           </section>
         )}
-        {ads.map((a) => (
-          <aside className="article-ad" key={a.id}>
-            <strong>{a.sponsored ? "إعلان مدفوع" : "تنبيه تحريري"}</strong>
-            <p>
-              {safeLink(a.url) ? (
-                <a href={a.url!} rel="sponsored noopener">
-                  {a.text}
-                </a>
-              ) : (
-                a.text
-              )}
-            </p>
-            {a.image_asset_id && (
-              <Image
-                src={`/api/v1/media/${a.image_asset_id}?variant=thumbnail`}
-                width={320}
-                height={180}
-                alt=""
-              />
-            )}
-          </aside>
-        ))}
+        <Advertisements items={ads} placement="article_after" />
+        <div className="article-sidebar">
+          <Advertisements items={ads} placement="sidebar" />
+        </div>
         <ArticleActions
           id={p.id}
           title={p.title}
           url={new URL(`/posts/${p.slug}`, siteUrl()).href}
-          commentsEnabled={p.allow_comments}
+          commentsEnabled={p.allow_comments && commentOptions.enabled}
+          commentsOpen={
+            (!p.comments_close_at ||
+              new Date(p.comments_close_at) > new Date()) &&
+            (!commentOptions.close_days ||
+              new Date(p.published_at).getTime() +
+                commentOptions.close_days * 86400000 >
+                new Date().getTime())
+          }
+          repliesEnabled={commentOptions.replies}
+          maxDepth={commentOptions.max_depth}
+          preModeration={commentOptions.pre_moderation}
           sharing={p.sharing}
         />
       </article>

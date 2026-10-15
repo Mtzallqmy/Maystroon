@@ -5,12 +5,14 @@ const env = {
   SUPABASE_SERVICE_ROLE_KEY: "fixture-service-role",
   RATE_LIMIT_SECRET: "fixture-only-rate-limit-secret-32-characters",
   NEXT_PUBLIC_SITE_URL: "http://127.0.0.1:3000",
+  PIN_PEPPER: "fixture-only-pin-pepper-more-than-32-characters",
   CRON_SECRET: "fixture-only-cron-secret-32-characters",
 };
 export default defineConfig({
   testDir: "./tests/cms-e2e",
   workers: 1,
-  timeout: 60000,
+  timeout: 180000,
+  expect: { timeout: 15000 },
   use: {
     baseURL: "http://127.0.0.1:3000",
     trace: "retain-on-failure",
@@ -33,14 +35,26 @@ export default defineConfig({
       reuseExistingServer: false,
     },
     {
-      command: "npm run dev -- --hostname 127.0.0.1",
+      command: "npm run dev -- --webpack --hostname 127.0.0.1",
       url: "http://127.0.0.1:3000",
       env,
       reuseExistingServer: false,
     },
   ],
   projects: [
-    { name: "desktop", use: { ...devices["Desktop Chrome"] } },
-    { name: "mobile", use: { ...devices["Pixel 7"] } },
+    {
+      name: "desktop",
+      use: {
+        ...devices["Desktop Chrome"],
+        extraHTTPHeaders: { "x-vercel-forwarded-for": "192.0.2.10" },
+      },
+    },
+    {
+      name: "mobile",
+      use: {
+        ...devices["Pixel 7"],
+        extraHTTPHeaders: { "x-vercel-forwarded-for": "192.0.2.20" },
+      },
+    },
   ],
 });

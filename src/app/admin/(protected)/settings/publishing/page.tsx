@@ -1,8 +1,8 @@
 import { requireAdmin } from "@/lib/auth";
 import PublishingSettings from "@/components/editor/publishing-settings";
 export default async function Page() {
-  const { db, roles } = await requireAdmin();
-  if (!roles.some((r) => ["OWNER", "ADMIN"].includes(r)))
+  const { db, permissions } = await requireAdmin();
+  if (!permissions["settings.update"])
     return <p>الإعدادات مخصصة للمالك والمدير.</p>;
   const { data, error } = await db
     .from("site_settings")

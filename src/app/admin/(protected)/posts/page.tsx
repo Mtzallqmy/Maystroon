@@ -1,17 +1,18 @@
 import { requireAdmin } from "@/lib/auth";
 import PostList from "@/components/editor/post-list";
 export default async function Page() {
-  const { db, roles } = await requireAdmin();
-  const { data, error } = await db
-    .from("posts")
-    .select("id,title,slug,status,version,deleted_at,updated_at")
-    .order("updated_at", { ascending: false })
-    .limit(100);
+  const { db, permissions } = await requireAdmin();
+  const { data, error } = await db.rpc("admin_post_list", {
+    p_page: 1,
+    p_q: "",
+    p_status: "",
+  });
   if (error) throw new Error("تعذر تحميل التدوينات");
   return (
     <PostList
-      initial={data}
-      publisher={roles.some((r) => ["OWNER", "ADMIN", "EDITOR"].includes(r))}
+      initial={data.rows}
+      create={!!permissions["posts.create"]}
+      publisher={!!permissions["posts.publish"]}
     />
   );
 }

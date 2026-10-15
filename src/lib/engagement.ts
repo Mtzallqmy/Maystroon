@@ -45,14 +45,24 @@ export async function engagement(
   if (!sameOrigin(req)) return failure("INVALID_ORIGIN", 403);
   try {
     z.uuid().parse(id);
+    const policy =
+      kind === "comments"
+        ? await privilegedDatabase().rpc("comment_policy_server")
+        : null;
+    if (policy?.error) throw policy.error;
+    const commentPolicy = policy?.data;
     const ip =
       req.headers.get("x-vercel-forwarded-for")?.split(",")[0]?.trim() ||
       "local";
     if (
       !(await rateLimit(
         `${kind}:${ip}`,
-        kind === "comments" ? 5 : kind === "reports" ? 10 : 60,
-        60,
+        kind === "comments"
+          ? Number(commentPolicy?.limit || 5)
+          : kind === "reports"
+            ? 10
+            : 60,
+        kind === "comments" ? Number(commentPolicy?.window_seconds || 60) : 60,
       ))
     )
       return failure("RATE_LIMITED", 429);
@@ -81,7 +91,11 @@ export async function engagement(
         p_body: b.body,
       });
       if (r.error) return failure("COMMENTS_CLOSED_OR_INVALID", 400);
-      data = { id: r.data, status: "pending" };
+      data = {
+        id: r.data,
+        status:
+          commentPolicy?.pre_moderation === false ? "approved" : "pending",
+      };
     } else {
       const v = visitor(req);
       if (kind === "views") {

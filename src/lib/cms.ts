@@ -116,7 +116,17 @@ const tickerPatch = z
     image_asset_id: nullableId.optional(),
     style: z.enum(["navy", "gold", "teal", "burgundy"]).optional(),
     pages: z.array(z.string().max(200)).max(30).optional(),
-    placement: z.enum(["ticker", "article"]).optional(),
+    placement: z
+      .enum([
+        "ticker",
+        "top",
+        "home",
+        "article",
+        "article_after",
+        "sidebar",
+        "footer",
+      ])
+      .optional(),
     sponsored: z.boolean().optional(),
     action: z.enum(["save", "delete"]).optional(),
   })
@@ -261,6 +271,8 @@ export async function cmsCommand(resource: string, raw: unknown) {
   const { data, error } = await identity.db.rpc(rpc, args);
   if (error) {
     const known = [
+      "PIN_SETUP_REQUIRED",
+      "PIN_VERIFICATION_REQUIRED",
       "VERSION_CONFLICT",
       "FORBIDDEN",
       "NOT_FOUND",

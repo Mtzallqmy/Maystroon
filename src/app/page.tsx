@@ -1,46 +1,68 @@
+import { publicAdvertisements } from "@/lib/control/advertisements";
+import { Advertisements } from "@/components/control/advertisements";
 import Link from "next/link";
 import { BookOpen } from "lucide-react";
-import { homeData, posts, popularPosts, featuredPost } from "@/lib/content";
+import {
+  homeData,
+  posts,
+  popularPosts,
+  featuredPost,
+  publicPostFields,
+} from "@/lib/content";
+import type { Post } from "@/lib/content";
+import { publicDatabase } from "@/lib/supabase";
+import { publicConfiguration } from "@/lib/control/settings-service";
 import { Empty, PostCard } from "@/components/content";
 import { Ticker } from "@/components/ticker";
 export default async function Home() {
-  const d = await homeData();
-  const popular =
-    d.state === "ready" ? await popularPosts().catch(() => []) : [];
-  const featured =
-    d.state === "ready" ? await featuredPost().catch(() => null) : null;
-  const sections =
-    d.state === "ready"
-      ? await Promise.all(
-          d.categories.map(async (c) => ({
-            category: c,
-            posts: (await posts({ category: c.slug, pageSize: "3" })).data,
-          })),
-        ).catch(() => [])
-      : [];
+  const [d, config, advertisements] = await Promise.all([
+    homeData(),
+    publicConfiguration(),
+    publicAdvertisements(),
+  ]);
+  const sections = await Promise.all(
+    config.home.sections
+      .filter((s) => s.enabled)
+      .map(async (s) => {
+        let items: Post[] = [];
+        if (d.state === "ready" && s.type !== "hero")
+          try {
+            if (s.type === "featured" && !s.post_ids?.length) {
+              const featured = await featuredPost();
+              items = featured ? [featured] : [];
+            } else if (s.type === "manual" || s.type === "featured") {
+              if (s.post_ids?.length) {
+                const result = await publicDatabase()
+                  .from("posts")
+                  .select(publicPostFields)
+                  .in("id", s.post_ids)
+                  .limit(s.limit);
+                if (!result.error)
+                  items = (result.data || []) as unknown as Post[];
+                items.sort(
+                  (a, b) =>
+                    s.post_ids!.indexOf(a.id) - s.post_ids!.indexOf(b.id),
+                );
+              }
+            } else if (s.type === "popular") items = await popularPosts();
+            else if (s.type === "category") {
+              const category = d.categories.find((c) => c.id === s.category_id);
+              if (category)
+                items = (
+                  await posts({
+                    category: category.slug,
+                    pageSize: String(s.limit),
+                  })
+                ).data;
+            } else items = (await posts({ pageSize: String(s.limit) })).data;
+          } catch {}
+        return { config: s, items: items.slice(0, s.limit) };
+      }),
+  );
   return (
     <>
       <Ticker items={d.ticker} />
-      <section className="intro">
-        <div>
-          <span className="eyebrow">المعرفة · الثقافة · الحياة</span>
-          <h1>
-            لكلّ فكرةٍ سطر،
-            <br />
-            ولكلّ سطرٍ أفق.
-          </h1>
-          <p>
-            في ما يسطرون نقرأ العالم من زوايا متعددة، ونمنح المعرفة والحكاية
-            مساحة تستحقها.
-          </p>
-          <Link href="/about" className="button outline">
-            تعرّف على ما يسطرون
-          </Link>
-        </div>
-        <div className="intro-mark" aria-hidden>
-          <BookOpen />
-        </div>
-      </section>
+      <Advertisements items={advertisements} placement="home" />
       {d.state !== "ready" && (
         <p className="status" role="status">
           {d.state === "unconfigured"
@@ -48,48 +70,41 @@ export default async function Home() {
             : "تعذّر تحميل المحتوى الآن. يرجى المحاولة لاحقاً."}
         </p>
       )}
-      {featured && (
-        <section className="section">
-          <div className="section-heading">
-            <h2>اختيار التحرير</h2>
-          </div>
-          <PostCard post={featured} />
-        </section>
-      )}
-      <section className="section">
-        <div className="section-heading">
-          <h2>أحدث ما سُطّر</h2>
-          <Link href="/search" className="eyebrow">
-            استكشف التدوينات ←
-          </Link>
-        </div>
-        {d.posts.length ? (
-          <div className="grid">
-            {d.posts.map((p) => (
-              <PostCard key={p.id} post={p} />
-            ))}
-          </div>
-        ) : (
-          <Empty />
-        )}
-      </section>
-      {popular.length > 0 && (
-        <section className="section">
-          <h2>الأكثر قراءة هذا الأسبوع</h2>
-          <div className="grid">
-            {popular.map((p) => (
-              <div key={p.id}>
-                <PostCard post={p} />
-                <p>{p.views} مشاهدة مسجلة خلال الأسبوع</p>
+      {sections.map(({ config: s, items }) =>
+        s.type === "hero" ? (
+          <section className="intro" key={s.id}>
+            <div>
+              <span className="eyebrow">المعرفة · الثقافة · الحياة</span>
+              <h1>{s.title}</h1>
+              <p>{s.description}</p>
+              <Link href="/about" className="button outline">
+                تعرّف على ما يسطرون
+              </Link>
+            </div>
+            <div className="intro-mark" aria-hidden>
+              <BookOpen />
+            </div>
+          </section>
+        ) : !items.length && s.hide_empty ? null : (
+          <section className="section" key={s.id}>
+            <div className="section-heading">
+              <h2>{s.title}</h2>
+              <Link href="/search">استكشف التدوينات ←</Link>
+            </div>
+            {items.length ? (
+              <div className="grid">
+                {items.map((p) => (
+                  <PostCard key={p.id} post={p} />
+                ))}
               </div>
-            ))}
-          </div>
-        </section>
+            ) : (
+              <Empty />
+            )}
+          </section>
+        ),
       )}
       <section className="section">
-        <div className="section-heading">
-          <h2>أبواب المعرفة</h2>
-        </div>
+        <h2>أبواب المعرفة</h2>
         {d.categories.length ? (
           <div className="grid">
             {d.categories.map((c) => (
@@ -110,21 +125,6 @@ export default async function Home() {
           />
         )}
       </section>
-      {sections
-        .filter((s) => s.posts.length)
-        .map((s) => (
-          <section className="section" key={s.category.id}>
-            <div className="section-heading">
-              <h2>{s.category.name}</h2>
-              <Link href={"/categories/" + s.category.slug}>عرض القسم ←</Link>
-            </div>
-            <div className="grid">
-              {s.posts.map((p) => (
-                <PostCard key={p.id} post={p} />
-              ))}
-            </div>
-          </section>
-        ))}
     </>
   );
 }

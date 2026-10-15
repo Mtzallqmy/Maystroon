@@ -1,7 +1,8 @@
 import { requireAdmin } from "@/lib/auth";
 import MediaLibrary from "@/components/editor/media-library";
 export default async function Page() {
-  const { db } = await requireAdmin();
+  const { db, permissions } = await requireAdmin();
+  if (!permissions["media.manage"]) return <p>لا تملك صلاحية إدارة الوسائط.</p>;
   const { data, error } = await db
     .from("media_assets")
     .select("*")

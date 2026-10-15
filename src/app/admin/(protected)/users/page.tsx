@@ -1,10 +1,8 @@
-export default function Page() {
-  return (
-    <>
-      <h1>إدارة المستخدمين</h1>
-      <p className="status">
-        هذا القسم غير مفعّل بعد. تُستكمل عملياته في المراحل التالية.
-      </p>
-    </>
-  );
+import { ControlPage } from "@/components/control/page";
+export default async function Page({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  return <ControlPage resource="users" searchParams={searchParams} />;
 }

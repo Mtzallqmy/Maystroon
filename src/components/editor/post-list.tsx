@@ -10,13 +10,19 @@ type Row = {
   version: number;
   deleted_at: string | null;
   updated_at: string;
+  can_update?: boolean;
+  can_delete?: boolean;
+  can_publish?: boolean;
+  can_duplicate?: boolean;
 };
 export default function PostList({
   initial,
   publisher,
+  create = true,
 }: {
   initial: Row[];
   publisher: boolean;
+  create?: boolean;
 }) {
   const [rows, setRows] = useState(initial);
   const [q, setQ] = useState("");
@@ -114,9 +120,11 @@ export default function PostList({
   return (
     <>
       <h1>التدوينات</h1>
-      <Link className="button" href="/admin/posts/new">
-        تدوينة جديدة
-      </Link>
+      {create && (
+        <Link className="button" href="/admin/posts/new">
+          تدوينة جديدة
+        </Link>
+      )}
       <label>
         البحث في التدوينات
         <input value={q} onChange={(e) => setQ(e.target.value)} />
@@ -152,7 +160,19 @@ export default function PostList({
               ]
             : ["review", "delete"]
           ).map((a) => (
-            <button key={a} onClick={() => void act(a)}>
+            <button
+              key={a}
+              disabled={rows
+                .filter((r) => selected.includes(r.id))
+                .some((r) =>
+                  ["publish", "unpublished", "archived"].includes(a)
+                    ? !r.can_publish
+                    : ["delete", "restore"].includes(a)
+                      ? !r.can_delete
+                      : !r.can_update,
+                )}
+              onClick={() => void act(a)}
+            >
               {a} ({selected.length})
             </button>
           ))}
@@ -201,15 +221,24 @@ export default function PostList({
                   <td>{r.deleted_at ? "محذوفة" : r.status}</td>
                   <td>
                     {r.deleted_at ? (
-                      <button onClick={() => void act("restore", r)}>
+                      <button
+                        disabled={!r.can_delete}
+                        onClick={() => void act("restore", r)}
+                      >
                         استعادة
                       </button>
                     ) : (
                       <>
-                        <button onClick={() => void act("duplicate", r)}>
+                        <button
+                          disabled={!r.can_duplicate}
+                          onClick={() => void act("duplicate", r)}
+                        >
                           نسخ
                         </button>
-                        <button onClick={() => void act("delete", r)}>
+                        <button
+                          disabled={!r.can_delete}
+                          onClick={() => void act("delete", r)}
+                        >
                           حذف آمن
                         </button>
                         {r.status === "published" && (
