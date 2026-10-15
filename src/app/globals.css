@@ -1200,3 +1200,48 @@ body {
     min-width: 0;
   }
 }
+
+.data-records {
+  display: none;
+}
+@media (max-width: 620px) {
+  .data-table table {
+    display: none;
+  }
+  .data-records {
+    display: grid;
+    gap: 1rem;
+  }
+  .data-record {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1rem;
+  }
+  .data-record dl {
+    margin: 0;
+  }
+  .data-record dl > div {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+    gap: 0.75rem;
+    padding: 0.65rem 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .data-record dl > div:last-child {
+    border-bottom: 0;
+  }
+  .data-record dt {
+    font-weight: 600;
+    color: var(--muted);
+  }
+  .data-record dd {
+    margin: 0;
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+  .data-record pre {
+    max-width: 100%;
+    overflow: auto;
+  }
+}

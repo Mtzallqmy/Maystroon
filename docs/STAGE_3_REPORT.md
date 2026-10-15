@@ -39,7 +39,7 @@
 - أربعة مسارات Playwright ناجحة: استوديو النشر ومركز التحكم على الكمبيوتر والهاتف. شُغّلت النسخة النهائية على production build، مع Auth/Storage محاكيين وبقاعدة PostgreSQL محلية تنفذ migrations وRLS وRPC الحقيقية. لا يثبت ذلك ملكية البريد أو SMTP أو MFA أو Storage إنتاجياً.
 - ستة اختبارات صفحات عامة غير موصولة ناجحة؛ أربعة اختبارات الاتصال الحي opt-in تُتخطى في هذا التشغيل صراحةً.
 - production build وTypeScript وESLint وفحص حدود أسرار حزمة المتصفح نجحت؛ npm audit --omit=dev أبلغ عن صفر ثغرات.
-- CI للرفع الأول للمرحلة الثالثة نجح: https://github.com/Mtzallqmy/Maystroon/actions/runs/38815984763. حالة آخر commit تُراجع من صفحة PR؛ لا يُفترض نجاح إعادة تشغيل لاحقة قبل ظهور نتيجتها.
+- CI للنسخة c49ae71 قبل تحسين بطاقات الهاتف نجح: https://github.com/Mtzallqmy/Maystroon/actions/runs/38817430867. حالة آخر commit تُراجع من صفحة PR؛ لا يُفترض نجاح إعادة تشغيل لاحقة قبل ظهور نتيجتها.
 - اللقطات في docs/screenshots/stage-3-desktop-fixture.png وstage-3-mobile-fixture.png تخص بيانات اختبار محلية موسومة ببريد example.test، وليست حسابات إنتاجية.
 
 ## Supabase: المطبق فعلياً والعائق

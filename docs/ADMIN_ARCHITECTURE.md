@@ -9,3 +9,5 @@ The existing CMS functions were replaced with permission checks, rather than cre
 Lists are bounded: users/control resources 25 per page, CMS post lists 100, security sessions latest 50, roles at most 8×25 grants. Analytics accepts at most 366 inclusive UTC days and paginates post performance. Category/author rankings return top 25; no traffic-source/device data is invented. CSV exports one authorized page at a time and neutralizes spreadsheet formulas.
 
 Local integration testing uses real PGlite migrations/RLS/RPC with simulated Auth/Storage protocols. It is not a substitute for verifying real SMTP, MFA, owner bootstrap, Storage and deployment credentials. The fixture has no application production switch and is not deployed.
+
+On phones, administrative records use labeled definition-list cards rather than compressed desktop columns. Desktop keeps semantic tables; CSS chooses the visible representation without client JavaScript. Browser checks verify the correct representation at both widths.

@@ -1,4 +1,22 @@
 import Link from "next/link";
+function CellValue({ value }: { value: unknown }) {
+  if (typeof value === "object" && value !== null)
+    return (
+      <details>
+        <summary>التفاصيل</summary>
+        <pre dir="ltr">{JSON.stringify(value, null, 2)}</pre>
+      </details>
+    );
+  return (
+    <>
+      {typeof value === "boolean"
+        ? value
+          ? "نعم"
+          : "لا"
+        : String(value ?? "—")}
+    </>
+  );
+}
 export function DataTable({
   rows,
   columns,
@@ -24,26 +42,33 @@ export function DataTable({
             <tr key={String(row.id || row.user_id || row.key || i)}>
               {columns.map(([key]) => (
                 <td key={key}>
-                  {typeof row[key] === "object" && row[key] !== null ? (
-                    <details>
-                      <summary>التفاصيل</summary>
-                      <pre dir="ltr">{JSON.stringify(row[key], null, 2)}</pre>
-                    </details>
-                  ) : typeof row[key] === "boolean" ? (
-                    row[key] ? (
-                      "نعم"
-                    ) : (
-                      "لا"
-                    )
-                  ) : (
-                    String(row[key] ?? "—")
-                  )}
+                  <CellValue value={row[key]} />
                 </td>
               ))}
             </tr>
           ))}
         </tbody>
       </table>
+      <div className="data-records" aria-label="السجلات">
+        {rows.map((row, i) => (
+          <article
+            className="data-record"
+            key={String(row.id || row.user_id || row.key || i)}
+            aria-label={`السجل ${i + 1}`}
+          >
+            <dl>
+              {columns.map(([key, label]) => (
+                <div key={key}>
+                  <dt>{label}</dt>
+                  <dd>
+                    <CellValue value={row[key]} />
+                  </dd>
+                </div>
+              ))}
+            </dl>
+          </article>
+        ))}
+      </div>
     </div>
   );
 }

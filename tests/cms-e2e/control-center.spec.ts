@@ -117,6 +117,11 @@ test("control center enforces PIN, saves settings, menus, maintenance and scoped
     await page.getByRole("button", { name: "فتح تنقل الإدارة" }).click();
     await expect(page.locator("#admin-navigation")).toBeVisible();
     await page.getByRole("button", { name: "إغلاق تنقل الإدارة" }).click();
+    await expect(page.locator(".data-records")).toBeVisible();
+    await expect(page.locator(".data-table table")).toBeHidden();
+  } else {
+    await expect(page.locator(".data-records")).toBeHidden();
+    await expect(page.locator(".data-table table")).toBeVisible();
   }
   expect(
     await page.evaluate(
