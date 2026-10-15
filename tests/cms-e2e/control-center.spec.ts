@@ -35,7 +35,7 @@ test("control center enforces PIN, saves settings, menus, maintenance and scoped
   await expect(
     page.getByRole("status").filter({ hasText: "نجح التحقق" }),
   ).toBeVisible();
-  await page.goto("/admin/settings?tab=identity");
+  await page.goto("/admin/settings?tab=general");
   await page.getByLabel("اسم المنصة", { exact: true }).fill("ما يسطرون");
   await page
     .getByLabel("الوصف", { exact: true })
@@ -93,6 +93,9 @@ test("control center enforces PIN, saves settings, menus, maintenance and scoped
   ).toBeVisible();
   expect((await page.request.get("/api/v1/posts")).status()).toBe(503);
   expect((await page.request.get("/api/v1/health")).status()).toBe(200);
+  const cron = await page.request.get("/api/v1/cron/publish");
+  expect(await cron.json()).toMatchObject({ error: { code: "UNAUTHORIZED" } });
+  expect(cron.status()).toBe(401);
   const maintenance = await page.request.get("/");
   expect(maintenance.status()).toBe(503);
   expect(await maintenance.text()).toContain("صيانة اختبار محلي فقط");

@@ -97,6 +97,9 @@ export async function controlRead(resource: string, params: URLSearchParams) {
           p_page: page,
         }),
       ),
+      metrics: checked(
+        await db.rpc("admin_period_metrics", { p_from: from, p_to: to }),
+      ),
       from,
       to,
     };
@@ -115,6 +118,7 @@ export async function controlRead(resource: string, params: URLSearchParams) {
       events: checked(events),
       total: events.count,
       user_id: user.id,
+      current_session_id: (await db.auth.getClaims()).data?.claims.session_id,
     };
   }
   if (resource === "backups")
@@ -272,6 +276,12 @@ export async function controlCommand(resource: string, input: unknown) {
       p_enabled: b.enabled,
       p_config: b.config,
     });
+  } else if (resource === "security") {
+    const b = z
+      .object({ id: z.uuid(), action: z.literal("revoke") })
+      .strict()
+      .parse(input);
+    result = await db.rpc("admin_revoke_session", { p_session: b.id });
   } else if (resource === "invitations") {
     const action = z
       .object({ action: z.enum(["create", "revoke"]) })

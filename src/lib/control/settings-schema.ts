@@ -105,7 +105,15 @@ export const maintenanceSchema = z
     until: z.iso.datetime().nullable(),
   })
   .strict();
+export const mediaPolicySchema = z
+  .object({
+    max_upload_bytes: z.number().int().min(262144).max(5242880),
+    allow_gif: z.boolean(),
+    webp_quality: z.number().int().min(40).max(95),
+  })
+  .strict();
 export const settingSchemas = {
+  media: mediaPolicySchema,
   identity: identitySchema,
   home: homeSchema,
   publishing: publishingSchema,
@@ -116,6 +124,7 @@ export const settingSchemas = {
 };
 export type SettingKey = keyof typeof settingSchemas;
 export const settingDefaults = {
+  media: { max_upload_bytes: 5242880, allow_gif: true, webp_quality: 82 },
   identity: {
     name: "ما يسطرون",
     description: "مساحة للمعرفة والحكاية",

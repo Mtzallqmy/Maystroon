@@ -2893,6 +2893,47 @@
             "description": "SERVICE_UNAVAILABLE"
           }
         }
+      },
+      "post": {
+        "summary": "Revoke another administrative session",
+        "description": "OWNER, fresh strong PIN proof and exact Origin required; current session must use logout. Stores administrative revocation, does not claim global JWT termination.",
+        "security": [
+          {
+            "adminCookie": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["id", "action"],
+                "additionalProperties": false,
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "action": {
+                    "const": "revoke"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Administrative session revoked"
+          },
+          "403": {
+            "description": "Permission/PIN denied"
+          },
+          "400": {
+            "description": "Invalid session/current session uses logout"
+          }
+        }
       }
     },
     "/api/v1/admin/backups": {

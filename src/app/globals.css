@@ -1179,3 +1179,24 @@ body {
     margin-inline-start: 1rem;
   }
 }
+.reading-layout {
+  display: block;
+  min-width: 0;
+}
+@media (min-width: 1100px) {
+  .reading-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 240px;
+    gap: 2rem;
+    align-items: start;
+  }
+  .reading-layout .article-sidebar {
+    display: block;
+    position: sticky;
+    top: 1rem;
+  }
+  .reading-layout .reading-article {
+    width: 100%;
+    min-width: 0;
+  }
+}

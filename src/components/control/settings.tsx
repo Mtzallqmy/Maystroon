@@ -9,7 +9,8 @@ import {
 import { command, errorMessage } from "./form";
 type Row = { key: string; value: unknown; version: number };
 const names: Record<SettingKey, string> = {
-  identity: "الهوية البصرية والعام",
+  identity: "إعدادات الهوية",
+  media: "الوسائط",
   home: "الصفحة الرئيسية",
   publishing: "النشر",
   comments: "التعليقات",
@@ -18,6 +19,9 @@ const names: Record<SettingKey, string> = {
   maintenance: "الصيانة",
 };
 const textNames: Record<string, string> = {
+  max_upload_bytes: "أقصى حجم عبر خدمة الرفع بالبايت (256KiB إلى 5MiB)",
+  allow_gif: "السماح برفع GIF",
+  webp_quality: "جودة مشتقات WebP (40–95)",
   name: "اسم المنصة",
   description: "الوصف",
   footer: "نص التذييل",
@@ -50,6 +54,7 @@ export function SettingsEditor({
   rows,
   tab,
   permissions,
+  group = "appearance",
   assets,
   categories,
   posts,
@@ -57,6 +62,7 @@ export function SettingsEditor({
   rows: Row[];
   tab: SettingKey;
   permissions: string[];
+  group?: "general" | "appearance";
   assets: { id: string; display_name: string }[];
   categories: { id: string; name: string }[];
   posts: { id: string; title: string }[];
@@ -82,7 +88,12 @@ export function SettingsEditor({
     setValue((s) => ({ ...s, [key]: v }));
     setPreview(false);
   }
-  const keyNames = Object.keys(settingDefaults[tab]);
+  const general = ["name", "description", "footer", "socials"];
+  const keyNames = Object.keys(settingDefaults[tab]).filter(
+    (k) =>
+      tab !== "identity" ||
+      (group === "general" ? general.includes(k) : !general.includes(k)),
+  );
   return (
     <section className="control-card">
       <h2>{names[tab]}</h2>

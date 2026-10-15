@@ -14,6 +14,7 @@ export async function proxy(request: NextRequest) {
     path.startsWith("/api/v1/invitations") ||
     path === "/api/v1/health" ||
     path.startsWith("/api/cron") ||
+    path.startsWith("/api/v1/cron/") ||
     path === "/maintenance";
   if (!exempt) {
     const { maintenance, identity } = await publicConfiguration();

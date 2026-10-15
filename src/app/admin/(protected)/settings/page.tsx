@@ -3,7 +3,8 @@ import { requireAdmin } from "@/lib/auth";
 import { SettingsEditor } from "@/components/control/settings";
 import { settingSchemas, type SettingKey } from "@/lib/control/settings-schema";
 const tabs = [
-  ["identity", "عام والهوية"],
+  ["general", "عام"],
+  ["identity", "الهوية البصرية"],
   ["home", "الصفحة الرئيسية"],
   ["menus", "القوائم والأقسام"],
   ["publishing", "النشر"],
@@ -25,7 +26,11 @@ export default async function Page({
     return <p>لا تملك صلاحية عرض الإعدادات.</p>;
   const query = await searchParams;
   const tab = (
-    query.tab && query.tab in settingSchemas ? query.tab : "identity"
+    query.tab === "general"
+      ? "identity"
+      : query.tab && query.tab in settingSchemas
+        ? query.tab
+        : "identity"
   ) as SettingKey;
   const [settings, assets, categories, posts] = await Promise.all([
     identity.db
@@ -64,13 +69,11 @@ export default async function Page({
             href={
               key === "menus"
                 ? "/admin/menus"
-                : key === "media"
-                  ? "/admin/media"
-                  : key === "announcements"
-                    ? "/admin/announcements"
-                    : key === "integrations"
-                      ? "/admin/integrations"
-                      : "/admin/settings?tab=" + key
+                : key === "announcements"
+                  ? "/admin/announcements"
+                  : key === "integrations"
+                    ? "/admin/integrations"
+                    : "/admin/settings?tab=" + key
             }
           >
             {label}
@@ -78,7 +81,8 @@ export default async function Page({
         ))}
       </nav>
       <SettingsEditor
-        key={tab}
+        key={tab + (query.tab || "")}
+        group={query.tab === "general" ? "general" : "appearance"}
         rows={settings.data || []}
         tab={tab}
         permissions={Object.keys(identity.permissions)}

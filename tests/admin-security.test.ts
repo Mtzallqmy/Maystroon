@@ -513,3 +513,70 @@ it("public post DTO can read its comment close date without wider grants", async
   expect(options).not.toHaveProperty("blocked_emails");
   expect(options).not.toHaveProperty("blocked_words");
 });
+it("owner can revoke another administrative session without deleting Auth data", async () => {
+  await db.query("select admin_revoke_session($1)", [ids.EDITOR]);
+  await actor("EDITOR");
+  expect(
+    (await scalar<{ active: boolean }>("select admin_identity() v")).active,
+  ).toBe(false);
+  await db.exec("reset role");
+  expect(
+    await scalar("select count(*)::int v from auth.sessions where id=$1", [
+      ids.EDITOR,
+    ]),
+  ).toBe(1);
+});
+it("review and period metrics use actual scoped history; absent history stays null", async () => {
+  const metrics = await scalar<{
+    average_review_hours: number | null;
+    current_views: number;
+    previous_views: number;
+  }>("select admin_period_metrics(current_date-6,current_date) v");
+  expect(metrics.average_review_hours).toBeNull();
+  expect(Number(metrics.current_views)).toBe(0);
+  expect(Number(metrics.previous_views)).toBe(0);
+});
+it("media settings reject executable configuration and enforce fixed security bounds", async () => {
+  await expect(
+    db.query("select admin_update_setting('media',$1,1)", [
+      JSON.stringify({
+        max_upload_bytes: 999999999,
+        allow_gif: true,
+        webp_quality: 82,
+      }),
+    ]),
+  ).rejects.toThrow("INVALID_MEDIA_POLICY");
+  await db.query("select admin_update_setting('media',$1,1)", [
+    JSON.stringify({
+      max_upload_bytes: 1048576,
+      allow_gif: false,
+      webp_quality: 70,
+    }),
+  ]);
+  await actor("anon");
+  expect(
+    await scalar("select count(*)::int v from site_settings where key='media'"),
+  ).toBe(0);
+});
+it("period comparison and review duration derive from actual retained events", async () => {
+  await db.exec("reset role");
+  await db.query(
+    "insert into post_view_daily(post_id,day,views) values($1,current_date,12),($1,current_date-7,6)",
+    [post],
+  );
+  await db.query(
+    "insert into audit_logs(actor_id,action,entity_type,entity_id,created_at) values($1,'post_review','post',$2,now()-interval '2 hours'),($1,'post_publish','post',$2,now())",
+    [ids.OWNER, post],
+  );
+  await actor("OWNER", true);
+  const metrics = await scalar<{
+    average_review_hours: number;
+    current_views: number;
+    previous_views: number;
+    change_percent: number;
+  }>("select admin_period_metrics(current_date-6,current_date) v");
+  expect(Number(metrics.current_views)).toBe(12);
+  expect(Number(metrics.previous_views)).toBe(6);
+  expect(Number(metrics.change_percent)).toBe(100);
+  expect(Number(metrics.average_review_hours)).toBe(2);
+});

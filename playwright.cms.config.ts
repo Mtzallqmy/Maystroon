@@ -35,9 +35,11 @@ export default defineConfig({
       reuseExistingServer: false,
     },
     {
-      command: "npm run dev -- --webpack --hostname 127.0.0.1",
+      command:
+        "npm run build && npm run security:client && npm run start -- --hostname 127.0.0.1",
       url: "http://127.0.0.1:3000",
       env,
+      timeout: 120000,
       reuseExistingServer: false,
     },
   ],

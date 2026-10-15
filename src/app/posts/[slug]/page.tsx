@@ -107,107 +107,110 @@ export default async function Article({
   };
   return (
     <>
-      <article id="article-top" className="reading-article">
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify(ld).replace(/</g, "\\u003c"),
-          }}
-        />
-        <nav aria-label="مسار التنقل">
-          <Link href="/">الرئيسية</Link> / <span>{p.title}</span>
-        </nav>
-        <header>
-          <span className="eyebrow">
-            {p.authors ? (
-              <Link href={`/authors/${p.authors.slug}`}>
-                {p.authors.display_name}
-              </Link>
-            ) : (
-              "هيئة التحرير"
-            )}{" "}
-            · {p.reading_minutes} دقائق قراءة
-            {views !== undefined && ` · ${views} مشاهدة مسجلة`}
-          </span>
-          <h1>{p.title}</h1>
-          {p.subtitle && <h2>{p.subtitle}</h2>}
-          <p className="article-deck">{p.excerpt}</p>
-          <time dateTime={p.published_at}>
-            {new Intl.DateTimeFormat("ar-YE", { dateStyle: "long" }).format(
-              new Date(p.published_at),
-            )}
-          </time>
-          {p.cover_asset_id && (
-            <Image
-              className="article-cover"
-              src={`/api/v1/media/${p.cover_asset_id}?variant=optimized`}
-              width={1600}
-              height={900}
-              sizes="(max-width:760px) 100vw, 900px"
-              alt={p.title}
-              priority
-            />
-          )}
-        </header>
-        {headings.length > 1 && (
-          <nav className="article-toc" aria-label="فهرس المقال">
-            <h2>في هذه التدوينة</h2>
-            {headings.map((h) => (
-              <a key={h.id} href={`#${h.id}`}>
-                {h.text}
-              </a>
-            ))}
+      <div className="reading-layout">
+        <article id="article-top" className="reading-article">
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{
+              __html: JSON.stringify(ld).replace(/</g, "\\u003c"),
+            }}
+          />
+          <nav aria-label="مسار التنقل">
+            <Link href="/">الرئيسية</Link> / <span>{p.title}</span>
           </nav>
-        )}
-        <Advertisements items={ads} placement="article" />
-        <div className="prose article-body">
-          {html ? (
-            <div dangerouslySetInnerHTML={{ __html: html }} />
-          ) : (
-            <p>{p.content}</p>
-          )}
-        </div>
-        {p.sources?.length > 0 && (
-          <section>
-            <h2>المصادر والمراجع</h2>
-            <ol>
-              {p.sources.map((s, i) => (
-                <li key={i}>
-                  {safeLink(s.url) ? (
-                    <a href={s.url} rel="noopener noreferrer nofollow">
-                      {s.title}
-                    </a>
-                  ) : (
-                    s.title
-                  )}
-                </li>
+          <header>
+            <span className="eyebrow">
+              {p.authors ? (
+                <Link href={`/authors/${p.authors.slug}`}>
+                  {p.authors.display_name}
+                </Link>
+              ) : (
+                "هيئة التحرير"
+              )}{" "}
+              · {p.reading_minutes} دقائق قراءة
+              {views !== undefined && ` · ${views} مشاهدة مسجلة`}
+            </span>
+            <h1>{p.title}</h1>
+            {p.subtitle && <h2>{p.subtitle}</h2>}
+            <p className="article-deck">{p.excerpt}</p>
+            <time dateTime={p.published_at}>
+              {new Intl.DateTimeFormat("ar-YE", { dateStyle: "long" }).format(
+                new Date(p.published_at),
+              )}
+            </time>
+            {p.cover_asset_id && (
+              <Image
+                className="article-cover"
+                src={`/api/v1/media/${p.cover_asset_id}?variant=optimized`}
+                width={1600}
+                height={900}
+                sizes="(max-width:760px) 100vw, 900px"
+                alt={p.title}
+                priority
+              />
+            )}
+          </header>
+          {headings.length > 1 && (
+            <nav className="article-toc" aria-label="فهرس المقال">
+              <h2>في هذه التدوينة</h2>
+              {headings.map((h) => (
+                <a key={h.id} href={`#${h.id}`}>
+                  {h.text}
+                </a>
               ))}
-            </ol>
-          </section>
-        )}
-        <Advertisements items={ads} placement="article_after" />
-        <div className="article-sidebar">
+            </nav>
+          )}
+          <Advertisements items={ads} placement="article" />
+          <div className="prose article-body">
+            {html ? (
+              <div dangerouslySetInnerHTML={{ __html: html }} />
+            ) : (
+              <p>{p.content}</p>
+            )}
+          </div>
+          {p.sources?.length > 0 && (
+            <section>
+              <h2>المصادر والمراجع</h2>
+              <ol>
+                {p.sources.map((s, i) => (
+                  <li key={i}>
+                    {safeLink(s.url) ? (
+                      <a href={s.url} rel="noopener noreferrer nofollow">
+                        {s.title}
+                      </a>
+                    ) : (
+                      s.title
+                    )}
+                  </li>
+                ))}
+              </ol>
+            </section>
+          )}
+          <Advertisements items={ads} placement="article_after" />
+
+          <ArticleActions
+            id={p.id}
+            title={p.title}
+            url={new URL(`/posts/${p.slug}`, siteUrl()).href}
+            commentsEnabled={p.allow_comments && commentOptions.enabled}
+            commentsOpen={
+              (!p.comments_close_at ||
+                new Date(p.comments_close_at) > new Date()) &&
+              (!commentOptions.close_days ||
+                new Date(p.published_at).getTime() +
+                  commentOptions.close_days * 86400000 >
+                  new Date().getTime())
+            }
+            repliesEnabled={commentOptions.replies}
+            maxDepth={commentOptions.max_depth}
+            preModeration={commentOptions.pre_moderation}
+            sharing={p.sharing}
+          />
+        </article>
+        <aside className="article-sidebar">
           <Advertisements items={ads} placement="sidebar" />
-        </div>
-        <ArticleActions
-          id={p.id}
-          title={p.title}
-          url={new URL(`/posts/${p.slug}`, siteUrl()).href}
-          commentsEnabled={p.allow_comments && commentOptions.enabled}
-          commentsOpen={
-            (!p.comments_close_at ||
-              new Date(p.comments_close_at) > new Date()) &&
-            (!commentOptions.close_days ||
-              new Date(p.published_at).getTime() +
-                commentOptions.close_days * 86400000 >
-                new Date().getTime())
-          }
-          repliesEnabled={commentOptions.replies}
-          maxDepth={commentOptions.max_depth}
-          preModeration={commentOptions.pre_moderation}
-          sharing={p.sharing}
-        />
-      </article>
+        </aside>
+      </div>
       <section>
         <h2>من تدوينات الكاتب</h2>
         <div className="grid">

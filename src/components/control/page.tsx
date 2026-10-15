@@ -149,6 +149,38 @@ export async function ControlPage({
             المقارنة تتم باختيار فترتين. أرقام الأقسام قد تتداخل إذا اشتركت
             التدوينة في أكثر من قسم.
           </p>
+          <div className="stats">
+            <article>
+              <h2>{data.metrics.current_views}</h2>
+              <p>مشاهدات الفترة</p>
+            </article>
+            <article>
+              <h2>{data.metrics.previous_views}</h2>
+              <p>
+                الفترة السابقة المماثلة: {data.metrics.previous_from} —{" "}
+                {data.metrics.previous_to}
+              </p>
+            </article>
+            <article>
+              <h2>
+                {data.metrics.change_percent === null
+                  ? "غير قابل للحساب"
+                  : data.metrics.change_percent + "%"}
+              </h2>
+              <p>تغير المشاهدات مقارنة بالفترة السابقة</p>
+            </article>
+            <article>
+              <h2>{data.metrics.average_views_per_post ?? "لا بيانات"}</h2>
+              <p>متوسط المشاهدات لكل تدوينة متاحة</p>
+            </article>
+            <article>
+              <h2>{data.metrics.average_review_hours ?? "لا سجل مكتمل"}</h2>
+              <p>
+                متوسط المراجعة بالساعات، من أزواج أحداث المراجعة والنشر المحتفظ
+                بها
+              </p>
+            </article>
+          </div>
           <ViewsChart days={data.days} />
           <h2>أداء التدوينات</h2>
           <DataTable
@@ -342,6 +374,29 @@ export async function ControlPage({
               ["admin_revoked", "مبطلة إدارياً"],
             ]}
           />
+          <section className="control-card">
+            <h2>إبطال جلسة إدارية</h2>
+            <p>
+              استخدم تسجيل الخروج لإنهاء الجلسة الحالية. الجلسة المبطلة تفقد
+              الوصول الإداري فوراً.
+            </p>
+            {data.sessions
+              .filter(
+                (s: Row) =>
+                  !s.admin_revoked && s.id !== data.current_session_id,
+              )
+              .map((s: Row) => (
+                <p key={String(s.id)}>
+                  {String(s.user_id)} · {String(s.created_at)}{" "}
+                  <Action
+                    resource="security"
+                    label="إبطال الجلسة"
+                    danger
+                    body={{ id: s.id, action: "revoke" }}
+                  />
+                </p>
+              ))}
+          </section>
           <h2>أحداث الأمان</h2>
           <DataTable
             rows={data.events}
