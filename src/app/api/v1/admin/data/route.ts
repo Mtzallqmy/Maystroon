@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { authorizedUser } from "@/lib/auth";
 import { failure } from "@/lib/api";
+import { rateLimit } from "@/lib/rate-limit";
 import { z } from "zod";
 export async function GET(req: NextRequest) {
   const identity = await authorizedUser();
@@ -17,6 +18,20 @@ export async function GET(req: NextRequest) {
     runs: "publishing_runs",
   };
   if (!resource || !tables[resource]) return failure("INVALID_RESOURCE", 400);
+  const permissions: Record<string, string> = {
+    posts: "posts.read",
+    categories: "categories.manage",
+    authors: "authors.manage",
+    media: "media.manage",
+    comments: "comments.moderate",
+    ticker: "announcements.manage",
+    revisions: "posts.update",
+    runs: "posts.schedule",
+  };
+  if (!identity.permissions[permissions[resource]])
+    return failure("FORBIDDEN", 403);
+  if (!(await rateLimit("admin-data:" + identity.user.id, 120, 60)))
+    return failure("RATE_LIMITED", 429);
   const page = z.coerce
     .number()
     .int()
@@ -24,6 +39,21 @@ export async function GET(req: NextRequest) {
     .max(10000)
     .safeParse(req.nextUrl.searchParams.get("page") || 1);
   if (!page.success) return failure("INVALID_INPUT", 400);
+  if (resource === "posts") {
+    const search = req.nextUrl.searchParams.get("q") || "";
+    const status = req.nextUrl.searchParams.get("status") || "";
+    if (search.length > 100) return failure("INVALID_INPUT", 400);
+    const { data, error } = await identity.db.rpc("admin_post_list", {
+      p_page: page.data,
+      p_q: search,
+      p_status: status,
+    });
+    if (error) return failure("INVALID_QUERY", 400);
+    return NextResponse.json(
+      { data: data.rows, total: data.total, page: page.data, pageSize: 100 },
+      { headers: { "Cache-Control": "private, no-store" } },
+    );
+  }
   const fields =
     resource === "posts"
       ? "id,title,slug,status,version,deleted_at,updated_at"

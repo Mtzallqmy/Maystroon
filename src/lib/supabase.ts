@@ -1,4 +1,5 @@
 import "server-only";
+import { createHash } from "node:crypto";
 import { createClient } from "@supabase/supabase-js";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
@@ -20,7 +21,17 @@ export function privilegedDatabase() {
 export async function sessionDatabase() {
   const jar = await cookies();
   const { url, key } = publicEnv();
+  const proof = jar.get("maystroon-proof")?.value;
   return createServerClient(url, key, {
+    global: {
+      headers: proof
+        ? {
+            "x-maystroon-proof": createHash("sha256")
+              .update(proof)
+              .digest("hex"),
+          }
+        : {},
+    },
     cookies: {
       getAll: () => jar.getAll(),
       setAll: (values) => {

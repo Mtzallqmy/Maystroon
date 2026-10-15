@@ -1,8 +1,8 @@
 import { requireAdmin } from "@/lib/auth";
 import Moderation from "@/components/editor/moderation";
 export default async function Page() {
-  const { db, roles } = await requireAdmin();
-  if (!roles.some((r) => ["OWNER", "ADMIN", "EDITOR"].includes(r)))
+  const { db, permissions } = await requireAdmin();
+  if (!permissions["comments.moderate"])
     return <p>مراجعة التعليقات تتطلب صلاحية تحرير.</p>;
   const [c, r] = await Promise.all([
     db

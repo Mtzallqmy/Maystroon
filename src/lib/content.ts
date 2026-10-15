@@ -37,10 +37,11 @@ export type Post = {
   tags: string[];
   sources: { title: string; url: string }[];
   allow_comments: boolean;
+  comments_close_at: string | null;
   sharing: Record<string, boolean>;
 };
 export const publicPostFields =
-  "id,title,slug,excerpt,content,cover_image,published_at,featured,reading_minutes,seo_title,seo_description,content_json,subtitle,cover_asset_id,thumbnail_asset_id,share_asset_id,updated_at,canonical_url,tags,sources,allow_comments,sharing,authors(display_name,slug)";
+  "id,title,slug,excerpt,content,cover_image,published_at,featured,reading_minutes,seo_title,seo_description,content_json,subtitle,cover_asset_id,thumbnail_asset_id,share_asset_id,updated_at,canonical_url,tags,sources,allow_comments,comments_close_at,sharing,authors(display_name,slug)";
 export async function categories(): Promise<Category[]> {
   const { data, error } = await publicDatabase()
     .from("categories")

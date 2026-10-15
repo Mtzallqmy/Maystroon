@@ -13,12 +13,20 @@ export function ArticleActions({
   title,
   url,
   commentsEnabled,
+  commentsOpen = true,
+  repliesEnabled = true,
+  maxDepth = 3,
+  preModeration = true,
   sharing = {},
 }: {
   id: string;
   title: string;
   url: string;
   commentsEnabled: boolean;
+  commentsOpen?: boolean;
+  repliesEnabled?: boolean;
+  maxDepth?: number;
+  preModeration?: boolean;
   sharing?: Record<string, boolean>;
 }) {
   const [message, setMessage] = useState("");
@@ -120,7 +128,7 @@ export function ArticleActions({
               {c.parent_id && (
                 <small>رد على تعليق {c.parent_id.slice(0, 8)}</small>
               )}
-              {c.depth < 3 && (
+              {commentsOpen && repliesEnabled && c.depth < maxDepth && (
                 <button onClick={() => setParent(c.id)}>رد</button>
               )}
               <button
@@ -150,69 +158,80 @@ export function ArticleActions({
               <button onClick={() => setPage((p) => p + 1)}>التالي</button>
             )}
           </nav>
-          <form
-            onSubmit={async (e) => {
-              e.preventDefault();
-              setBusy(true);
-              const f = e.currentTarget;
-              const values = new FormData(f);
-              try {
-                const r = await fetch(`/api/v1/posts/${id}/comments`, {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({
-                    name: values.get("name"),
-                    email: values.get("email"),
-                    body: values.get("body"),
-                    website: values.get("website"),
-                    parent_id: parent,
-                  }),
-                });
-                setMessage(
-                  r.ok
-                    ? "أُرسل تعليقك للمراجعة."
-                    : "تعذر إرسال التعليق؛ تحقق من المدخلات أو حاول لاحقاً.",
-                );
-                if (r.ok) {
-                  f.reset();
-                  setParent(null);
+          {commentsOpen ? (
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault();
+                setBusy(true);
+                const f = e.currentTarget;
+                const values = new FormData(f);
+                try {
+                  const r = await fetch(`/api/v1/posts/${id}/comments`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                      name: values.get("name"),
+                      email: values.get("email"),
+                      body: values.get("body"),
+                      website: values.get("website"),
+                      parent_id: parent,
+                    }),
+                  });
+                  setMessage(
+                    r.ok
+                      ? "أُرسل تعليقك للمراجعة."
+                      : "تعذر إرسال التعليق؛ تحقق من المدخلات أو حاول لاحقاً.",
+                  );
+                  if (r.ok) {
+                    f.reset();
+                    setParent(null);
+                  }
+                } catch {
+                  setMessage("تعذر الاتصال");
+                } finally {
+                  setBusy(false);
                 }
-              } catch {
-                setMessage("تعذر الاتصال");
-              } finally {
-                setBusy(false);
-              }
-            }}
-          >
-            <h3>{parent ? "كتابة رد" : "أضف تعليقاً"}</h3>
-            {parent && (
-              <button type="button" onClick={() => setParent(null)}>
-                إلغاء الرد
+              }}
+            >
+              <h3>{parent ? "كتابة رد" : "أضف تعليقاً"}</h3>
+              {parent && (
+                <button type="button" onClick={() => setParent(null)}>
+                  إلغاء الرد
+                </button>
+              )}
+              <label>
+                الاسم
+                <input
+                  name="name"
+                  required
+                  maxLength={100}
+                  autoComplete="name"
+                />
+              </label>
+              <label>
+                البريد (اختياري، لا يظهر للزوار)
+                <input
+                  type="email"
+                  name="email"
+                  maxLength={254}
+                  autoComplete="email"
+                />
+              </label>
+              <label className="honeypot" aria-hidden="true">
+                الموقع
+                <input name="website" tabIndex={-1} autoComplete="off" />
+              </label>
+              <label>
+                التعليق دون روابط
+                <textarea name="body" required maxLength={5000} rows={5} />
+              </label>
+              <button disabled={busy}>
+                {preModeration ? "إرسال للمراجعة" : "إرسال التعليق"}
               </button>
-            )}
-            <label>
-              الاسم
-              <input name="name" required maxLength={100} autoComplete="name" />
-            </label>
-            <label>
-              البريد (اختياري، لا يظهر للزوار)
-              <input
-                type="email"
-                name="email"
-                maxLength={254}
-                autoComplete="email"
-              />
-            </label>
-            <label className="honeypot" aria-hidden="true">
-              الموقع
-              <input name="website" tabIndex={-1} autoComplete="off" />
-            </label>
-            <label>
-              التعليق دون روابط
-              <textarea name="body" required maxLength={5000} rows={5} />
-            </label>
-            <button disabled={busy}>إرسال للمراجعة</button>
-          </form>
+            </form>
+          ) : (
+            <p>أُغلق استقبال تعليقات جديدة على هذه التدوينة.</p>
+          )}
         </section>
       )}
     </>

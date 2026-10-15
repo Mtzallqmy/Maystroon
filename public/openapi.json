@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "MAYSTROON Public API",
-    "version": "1.1.0",
+    "version": "1.2.0",
     "description": "Published public content and verified-session administration. Android consumers use JSON; write requests send the configured site Origin."
   },
   "servers": [
@@ -1678,6 +1678,1416 @@
           }
         ]
       }
+    },
+    "/api/v1/admin/dashboard": {
+      "get": {
+        "summary": "Read authorized dashboard",
+        "description": "Requires dashboard.read. Database permission, live session and category scope enforced. Private/no-store. No secret/token/PIN hashes. Pages contain 25 records unless otherwise documented; sessions latest 50.",
+        "security": [
+          {
+            "adminCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 10000,
+              "default": 1
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "maxLength": 100
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Authorized data; analytics accepts <=366 inclusive UTC days."
+          },
+          "401": {
+            "description": "UNAUTHORIZED"
+          },
+          "403": {
+            "description": "FORBIDDEN"
+          },
+          "429": {
+            "description": "RATE_LIMITED"
+          },
+          "503": {
+            "description": "SERVICE_UNAVAILABLE"
+          }
+        }
+      }
+    },
+    "/api/v1/admin/users": {
+      "get": {
+        "summary": "Read authorized users",
+        "description": "Requires users.manage. Database permission, live session and category scope enforced. Private/no-store. No secret/token/PIN hashes. Pages contain 25 records unless otherwise documented; sessions latest 50.",
+        "security": [
+          {
+            "adminCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 10000,
+              "default": 1
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "maxLength": 100
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Authorized data; analytics accepts <=366 inclusive UTC days."
+          },
+          "401": {
+            "description": "UNAUTHORIZED"
+          },
+          "403": {
+            "description": "FORBIDDEN"
+          },
+          "429": {
+            "description": "RATE_LIMITED"
+          },
+          "503": {
+            "description": "SERVICE_UNAVAILABLE"
+          }
+        }
+      },
+      "post": {
+        "summary": "Execute validated users command",
+        "description": "Strict input, exact Origin required, shared rate limiting, database authorization/audit. OWNER sensitive operations require PIN proof; role/security changes also require fresh reauthentication. See docs/API.md for command schema.",
+        "security": [
+          {
+            "adminCookie": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Applied atomically or invitation pending email acceptance"
+          },
+          "400": {
+            "description": "INVALID_INPUT or permitted domain error, no raw SQL detail"
+          },
+          "401": {
+            "description": "UNAUTHORIZED"
+          },
+          "403": {
+            "description": "FORBIDDEN / PIN_VERIFICATION_REQUIRED / PIN_SETUP_REQUIRED"
+          },
+          "409": {
+            "description": "VERSION_CONFLICT"
+          },
+          "429": {
+            "description": "RATE_LIMITED"
+          }
+        }
+      },
+      "patch": {
+        "summary": "Execute validated users command",
+        "description": "Strict input, exact Origin required, shared rate limiting, database authorization/audit. OWNER sensitive operations require PIN proof; role/security changes also require fresh reauthentication. See docs/API.md for command schema.",
+        "security": [
+          {
+            "adminCookie": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Applied atomically or invitation pending email acceptance"
+          },
+          "400": {
+            "description": "INVALID_INPUT or permitted domain error, no raw SQL detail"
+          },
+          "401": {
+            "description": "UNAUTHORIZED"
+          },
+          "403": {
+            "description": "FORBIDDEN / PIN_VERIFICATION_REQUIRED / PIN_SETUP_REQUIRED"
+          },
+          "409": {
+            "description": "VERSION_CONFLICT"
+          },
+          "429": {
+            "description": "RATE_LIMITED"
+          }
+        }
+      }
+    },
+    "/api/v1/admin/roles": {
+      "get": {
+        "summary": "Read authorized roles",
+        "description": "Requires roles.manage. Database permission, live session and category scope enforced. Private/no-store. No secret/token/PIN hashes. Pages contain 25 records unless otherwise documented; sessions latest 50.",
+        "security": [
+          {
+            "adminCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 10000,
+              "default": 1
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "maxLength": 100
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Authorized data; analytics accepts <=366 inclusive UTC days."
+          },
+          "401": {
+            "description": "UNAUTHORIZED"
+          },
+          "403": {
+            "description": "FORBIDDEN"
+          },
+          "429": {
+            "description": "RATE_LIMITED"
+          },
+          "503": {
+            "description": "SERVICE_UNAVAILABLE"
+          }
+        }
+      },
+      "post": {
+        "summary": "Execute validated roles command",
+        "description": "Strict input, exact Origin required, shared rate limiting, database authorization/audit. OWNER sensitive operations require PIN proof; role/security changes also require fresh reauthentication. See docs/API.md for command schema.",
+        "security": [
+          {
+            "adminCookie": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Applied atomically or invitation pending email acceptance"
+          },
+          "400": {
+            "description": "INVALID_INPUT or permitted domain error, no raw SQL detail"
+          },
+          "401": {
+            "description": "UNAUTHORIZED"
+          },
+          "403": {
+            "description": "FORBIDDEN / PIN_VERIFICATION_REQUIRED / PIN_SETUP_REQUIRED"
+          },
+          "409": {
+            "description": "VERSION_CONFLICT"
+          },
+          "429": {
+            "description": "RATE_LIMITED"
+          }
+        }
+      },
+      "patch": {
+        "summary": "Execute validated roles command",
+        "description": "Strict input, exact Origin required, shared rate limiting, database authorization/audit. OWNER sensitive operations require PIN proof; role/security changes also require fresh reauthentication. See docs/API.md for command schema.",
+        "security": [
+          {
+            "adminCookie": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Applied atomically or invitation pending email acceptance"
+          },
+          "400": {
+            "description": "INVALID_INPUT or permitted domain error, no raw SQL detail"
+          },
+          "401": {
+            "description": "UNAUTHORIZED"
+          },
+          "403": {
+            "description": "FORBIDDEN / PIN_VERIFICATION_REQUIRED / PIN_SETUP_REQUIRED"
+          },
+          "409": {
+            "description": "VERSION_CONFLICT"
+          },
+          "429": {
+            "description": "RATE_LIMITED"
+          }
+        }
+      }
+    },
+    "/api/v1/admin/permissions": {
+      "get": {
+        "summary": "Read authorized permissions",
+        "description": "Requires roles.manage. Database permission, live session and category scope enforced. Private/no-store. No secret/token/PIN hashes. Pages contain 25 records unless otherwise documented; sessions latest 50.",
+        "security": [
+          {
+            "adminCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 10000,
+              "default": 1
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "maxLength": 100
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Authorized data; analytics accepts <=366 inclusive UTC days."
+          },
+          "401": {
+            "description": "UNAUTHORIZED"
+          },
+          "403": {
+            "description": "FORBIDDEN"
+          },
+          "429": {
+            "description": "RATE_LIMITED"
+          },
+          "503": {
+            "description": "SERVICE_UNAVAILABLE"
+          }
+        }
+      },
+      "post": {
+        "summary": "Execute validated permissions command",
+        "description": "Strict input, exact Origin required, shared rate limiting, database authorization/audit. OWNER sensitive operations require PIN proof; role/security changes also require fresh reauthentication. See docs/API.md for command schema.",
+        "security": [
+          {
+            "adminCookie": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Applied atomically or invitation pending email acceptance"
+          },
+          "400": {
+            "description": "INVALID_INPUT or permitted domain error, no raw SQL detail"
+          },
+          "401": {
+            "description": "UNAUTHORIZED"
+          },
+          "403": {
+            "description": "FORBIDDEN / PIN_VERIFICATION_REQUIRED / PIN_SETUP_REQUIRED"
+          },
+          "409": {
+            "description": "VERSION_CONFLICT"
+          },
+          "429": {
+            "description": "RATE_LIMITED"
+          }
+        }
+      },
+      "patch": {
+        "summary": "Execute validated permissions command",
+        "description": "Strict input, exact Origin required, shared rate limiting, database authorization/audit. OWNER sensitive operations require PIN proof; role/security changes also require fresh reauthentication. See docs/API.md for command schema.",
+        "security": [
+          {
+            "adminCookie": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Applied atomically or invitation pending email acceptance"
+          },
+          "400": {
+            "description": "INVALID_INPUT or permitted domain error, no raw SQL detail"
+          },
+          "401": {
+            "description": "UNAUTHORIZED"
+          },
+          "403": {
+            "description": "FORBIDDEN / PIN_VERIFICATION_REQUIRED / PIN_SETUP_REQUIRED"
+          },
+          "409": {
+            "description": "VERSION_CONFLICT"
+          },
+          "429": {
+            "description": "RATE_LIMITED"
+          }
+        }
+      }
+    },
+    "/api/v1/admin/settings": {
+      "get": {
+        "summary": "Read authorized settings",
+        "description": "Requires settings.read / settings.update. Database permission, live session and category scope enforced. Private/no-store. No secret/token/PIN hashes. Pages contain 25 records unless otherwise documented; sessions latest 50.",
+        "security": [
+          {
+            "adminCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 10000,
+              "default": 1
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "maxLength": 100
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Authorized data; analytics accepts <=366 inclusive UTC days."
+          },
+          "401": {
+            "description": "UNAUTHORIZED"
+          },
+          "403": {
+            "description": "FORBIDDEN"
+          },
+          "429": {
+            "description": "RATE_LIMITED"
+          },
+          "503": {
+            "description": "SERVICE_UNAVAILABLE"
+          }
+        }
+      },
+      "post": {
+        "summary": "Execute validated settings command",
+        "description": "Strict input, exact Origin required, shared rate limiting, database authorization/audit. OWNER sensitive operations require PIN proof; role/security changes also require fresh reauthentication. See docs/API.md for command schema.",
+        "security": [
+          {
+            "adminCookie": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Applied atomically or invitation pending email acceptance"
+          },
+          "400": {
+            "description": "INVALID_INPUT or permitted domain error, no raw SQL detail"
+          },
+          "401": {
+            "description": "UNAUTHORIZED"
+          },
+          "403": {
+            "description": "FORBIDDEN / PIN_VERIFICATION_REQUIRED / PIN_SETUP_REQUIRED"
+          },
+          "409": {
+            "description": "VERSION_CONFLICT"
+          },
+          "429": {
+            "description": "RATE_LIMITED"
+          }
+        }
+      },
+      "patch": {
+        "summary": "Execute validated settings command",
+        "description": "Strict input, exact Origin required, shared rate limiting, database authorization/audit. OWNER sensitive operations require PIN proof; role/security changes also require fresh reauthentication. See docs/API.md for command schema.",
+        "security": [
+          {
+            "adminCookie": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Applied atomically or invitation pending email acceptance"
+          },
+          "400": {
+            "description": "INVALID_INPUT or permitted domain error, no raw SQL detail"
+          },
+          "401": {
+            "description": "UNAUTHORIZED"
+          },
+          "403": {
+            "description": "FORBIDDEN / PIN_VERIFICATION_REQUIRED / PIN_SETUP_REQUIRED"
+          },
+          "409": {
+            "description": "VERSION_CONFLICT"
+          },
+          "429": {
+            "description": "RATE_LIMITED"
+          }
+        }
+      }
+    },
+    "/api/v1/admin/analytics": {
+      "get": {
+        "summary": "Read authorized analytics",
+        "description": "Requires analytics.read. Database permission, live session and category scope enforced. Private/no-store. No secret/token/PIN hashes. Pages contain 25 records unless otherwise documented; sessions latest 50.",
+        "security": [
+          {
+            "adminCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 10000,
+              "default": 1
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "maxLength": 100
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Authorized data; analytics accepts <=366 inclusive UTC days."
+          },
+          "401": {
+            "description": "UNAUTHORIZED"
+          },
+          "403": {
+            "description": "FORBIDDEN"
+          },
+          "429": {
+            "description": "RATE_LIMITED"
+          },
+          "503": {
+            "description": "SERVICE_UNAVAILABLE"
+          }
+        }
+      }
+    },
+    "/api/v1/admin/audit-logs": {
+      "get": {
+        "summary": "Read authorized audit-logs",
+        "description": "Requires audit.read. Database permission, live session and category scope enforced. Private/no-store. No secret/token/PIN hashes. Pages contain 25 records unless otherwise documented; sessions latest 50.",
+        "security": [
+          {
+            "adminCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 10000,
+              "default": 1
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "maxLength": 100
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Authorized data; analytics accepts <=366 inclusive UTC days."
+          },
+          "401": {
+            "description": "UNAUTHORIZED"
+          },
+          "403": {
+            "description": "FORBIDDEN"
+          },
+          "429": {
+            "description": "RATE_LIMITED"
+          },
+          "503": {
+            "description": "SERVICE_UNAVAILABLE"
+          }
+        }
+      }
+    },
+    "/api/v1/admin/notifications": {
+      "get": {
+        "summary": "Read authorized notifications",
+        "description": "Requires notifications.read. Database permission, live session and category scope enforced. Private/no-store. No secret/token/PIN hashes. Pages contain 25 records unless otherwise documented; sessions latest 50.",
+        "security": [
+          {
+            "adminCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 10000,
+              "default": 1
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "maxLength": 100
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Authorized data; analytics accepts <=366 inclusive UTC days."
+          },
+          "401": {
+            "description": "UNAUTHORIZED"
+          },
+          "403": {
+            "description": "FORBIDDEN"
+          },
+          "429": {
+            "description": "RATE_LIMITED"
+          },
+          "503": {
+            "description": "SERVICE_UNAVAILABLE"
+          }
+        }
+      },
+      "post": {
+        "summary": "Execute validated notifications command",
+        "description": "Strict input, exact Origin required, shared rate limiting, database authorization/audit. OWNER sensitive operations require PIN proof; role/security changes also require fresh reauthentication. See docs/API.md for command schema.",
+        "security": [
+          {
+            "adminCookie": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Applied atomically or invitation pending email acceptance"
+          },
+          "400": {
+            "description": "INVALID_INPUT or permitted domain error, no raw SQL detail"
+          },
+          "401": {
+            "description": "UNAUTHORIZED"
+          },
+          "403": {
+            "description": "FORBIDDEN / PIN_VERIFICATION_REQUIRED / PIN_SETUP_REQUIRED"
+          },
+          "409": {
+            "description": "VERSION_CONFLICT"
+          },
+          "429": {
+            "description": "RATE_LIMITED"
+          }
+        }
+      }
+    },
+    "/api/v1/admin/menus": {
+      "get": {
+        "summary": "Read authorized menus",
+        "description": "Requires menus.manage. Database permission, live session and category scope enforced. Private/no-store. No secret/token/PIN hashes. Pages contain 25 records unless otherwise documented; sessions latest 50.",
+        "security": [
+          {
+            "adminCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 10000,
+              "default": 1
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "maxLength": 100
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Authorized data; analytics accepts <=366 inclusive UTC days."
+          },
+          "401": {
+            "description": "UNAUTHORIZED"
+          },
+          "403": {
+            "description": "FORBIDDEN"
+          },
+          "429": {
+            "description": "RATE_LIMITED"
+          },
+          "503": {
+            "description": "SERVICE_UNAVAILABLE"
+          }
+        }
+      },
+      "post": {
+        "summary": "Execute validated menus command",
+        "description": "Strict input, exact Origin required, shared rate limiting, database authorization/audit. OWNER sensitive operations require PIN proof; role/security changes also require fresh reauthentication. See docs/API.md for command schema.",
+        "security": [
+          {
+            "adminCookie": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Applied atomically or invitation pending email acceptance"
+          },
+          "400": {
+            "description": "INVALID_INPUT or permitted domain error, no raw SQL detail"
+          },
+          "401": {
+            "description": "UNAUTHORIZED"
+          },
+          "403": {
+            "description": "FORBIDDEN / PIN_VERIFICATION_REQUIRED / PIN_SETUP_REQUIRED"
+          },
+          "409": {
+            "description": "VERSION_CONFLICT"
+          },
+          "429": {
+            "description": "RATE_LIMITED"
+          }
+        }
+      },
+      "patch": {
+        "summary": "Execute validated menus command",
+        "description": "Strict input, exact Origin required, shared rate limiting, database authorization/audit. OWNER sensitive operations require PIN proof; role/security changes also require fresh reauthentication. See docs/API.md for command schema.",
+        "security": [
+          {
+            "adminCookie": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Applied atomically or invitation pending email acceptance"
+          },
+          "400": {
+            "description": "INVALID_INPUT or permitted domain error, no raw SQL detail"
+          },
+          "401": {
+            "description": "UNAUTHORIZED"
+          },
+          "403": {
+            "description": "FORBIDDEN / PIN_VERIFICATION_REQUIRED / PIN_SETUP_REQUIRED"
+          },
+          "409": {
+            "description": "VERSION_CONFLICT"
+          },
+          "429": {
+            "description": "RATE_LIMITED"
+          }
+        }
+      }
+    },
+    "/api/v1/admin/invitations": {
+      "get": {
+        "summary": "Read authorized invitations",
+        "description": "Requires users.invite. Database permission, live session and category scope enforced. Private/no-store. No secret/token/PIN hashes. Pages contain 25 records unless otherwise documented; sessions latest 50.",
+        "security": [
+          {
+            "adminCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 10000,
+              "default": 1
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "maxLength": 100
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Authorized data; analytics accepts <=366 inclusive UTC days."
+          },
+          "401": {
+            "description": "UNAUTHORIZED"
+          },
+          "403": {
+            "description": "FORBIDDEN"
+          },
+          "429": {
+            "description": "RATE_LIMITED"
+          },
+          "503": {
+            "description": "SERVICE_UNAVAILABLE"
+          }
+        }
+      },
+      "post": {
+        "summary": "Execute validated invitations command",
+        "description": "Strict input, exact Origin required, shared rate limiting, database authorization/audit. OWNER sensitive operations require PIN proof; role/security changes also require fresh reauthentication. See docs/API.md for command schema.",
+        "security": [
+          {
+            "adminCookie": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Applied atomically or invitation pending email acceptance"
+          },
+          "400": {
+            "description": "INVALID_INPUT or permitted domain error, no raw SQL detail"
+          },
+          "401": {
+            "description": "UNAUTHORIZED"
+          },
+          "403": {
+            "description": "FORBIDDEN / PIN_VERIFICATION_REQUIRED / PIN_SETUP_REQUIRED"
+          },
+          "409": {
+            "description": "VERSION_CONFLICT"
+          },
+          "429": {
+            "description": "RATE_LIMITED"
+          }
+        }
+      }
+    },
+    "/api/v1/admin/announcements": {
+      "get": {
+        "summary": "Read authorized announcements",
+        "description": "Requires announcements.manage. Database permission, live session and category scope enforced. Private/no-store. No secret/token/PIN hashes. Pages contain 25 records unless otherwise documented; sessions latest 50.",
+        "security": [
+          {
+            "adminCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 10000,
+              "default": 1
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "maxLength": 100
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Authorized data; analytics accepts <=366 inclusive UTC days."
+          },
+          "401": {
+            "description": "UNAUTHORIZED"
+          },
+          "403": {
+            "description": "FORBIDDEN"
+          },
+          "429": {
+            "description": "RATE_LIMITED"
+          },
+          "503": {
+            "description": "SERVICE_UNAVAILABLE"
+          }
+        }
+      }
+    },
+    "/api/v1/admin/integrations": {
+      "get": {
+        "summary": "Read authorized integrations",
+        "description": "Requires integrations.manage. Database permission, live session and category scope enforced. Private/no-store. No secret/token/PIN hashes. Pages contain 25 records unless otherwise documented; sessions latest 50.",
+        "security": [
+          {
+            "adminCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 10000,
+              "default": 1
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "maxLength": 100
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Authorized data; analytics accepts <=366 inclusive UTC days."
+          },
+          "401": {
+            "description": "UNAUTHORIZED"
+          },
+          "403": {
+            "description": "FORBIDDEN"
+          },
+          "429": {
+            "description": "RATE_LIMITED"
+          },
+          "503": {
+            "description": "SERVICE_UNAVAILABLE"
+          }
+        }
+      },
+      "post": {
+        "summary": "Execute validated integrations command",
+        "description": "Strict input, exact Origin required, shared rate limiting, database authorization/audit. OWNER sensitive operations require PIN proof; role/security changes also require fresh reauthentication. See docs/API.md for command schema.",
+        "security": [
+          {
+            "adminCookie": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Applied atomically or invitation pending email acceptance"
+          },
+          "400": {
+            "description": "INVALID_INPUT or permitted domain error, no raw SQL detail"
+          },
+          "401": {
+            "description": "UNAUTHORIZED"
+          },
+          "403": {
+            "description": "FORBIDDEN / PIN_VERIFICATION_REQUIRED / PIN_SETUP_REQUIRED"
+          },
+          "409": {
+            "description": "VERSION_CONFLICT"
+          },
+          "429": {
+            "description": "RATE_LIMITED"
+          }
+        }
+      },
+      "patch": {
+        "summary": "Execute validated integrations command",
+        "description": "Strict input, exact Origin required, shared rate limiting, database authorization/audit. OWNER sensitive operations require PIN proof; role/security changes also require fresh reauthentication. See docs/API.md for command schema.",
+        "security": [
+          {
+            "adminCookie": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Applied atomically or invitation pending email acceptance"
+          },
+          "400": {
+            "description": "INVALID_INPUT or permitted domain error, no raw SQL detail"
+          },
+          "401": {
+            "description": "UNAUTHORIZED"
+          },
+          "403": {
+            "description": "FORBIDDEN / PIN_VERIFICATION_REQUIRED / PIN_SETUP_REQUIRED"
+          },
+          "409": {
+            "description": "VERSION_CONFLICT"
+          },
+          "429": {
+            "description": "RATE_LIMITED"
+          }
+        }
+      }
+    },
+    "/api/v1/admin/security": {
+      "get": {
+        "summary": "Read authorized security",
+        "description": "Requires security.manage. Database permission, live session and category scope enforced. Private/no-store. No secret/token/PIN hashes. Pages contain 25 records unless otherwise documented; sessions latest 50.",
+        "security": [
+          {
+            "adminCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 10000,
+              "default": 1
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "maxLength": 100
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Authorized data; analytics accepts <=366 inclusive UTC days."
+          },
+          "401": {
+            "description": "UNAUTHORIZED"
+          },
+          "403": {
+            "description": "FORBIDDEN"
+          },
+          "429": {
+            "description": "RATE_LIMITED"
+          },
+          "503": {
+            "description": "SERVICE_UNAVAILABLE"
+          }
+        }
+      },
+      "post": {
+        "summary": "Revoke another administrative session",
+        "description": "OWNER, fresh strong PIN proof and exact Origin required; current session must use logout. Stores administrative revocation, does not claim global JWT termination.",
+        "security": [
+          {
+            "adminCookie": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["id", "action"],
+                "additionalProperties": false,
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "action": {
+                    "const": "revoke"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Administrative session revoked"
+          },
+          "403": {
+            "description": "Permission/PIN denied"
+          },
+          "400": {
+            "description": "Invalid session/current session uses logout"
+          }
+        }
+      }
+    },
+    "/api/v1/admin/backups": {
+      "get": {
+        "summary": "Read authorized backups",
+        "description": "Requires backups.read. Database permission, live session and category scope enforced. Private/no-store. No secret/token/PIN hashes. Pages contain 25 records unless otherwise documented; sessions latest 50.",
+        "security": [
+          {
+            "adminCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 10000,
+              "default": 1
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "maxLength": 100
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Authorized data; analytics accepts <=366 inclusive UTC days."
+          },
+          "401": {
+            "description": "UNAUTHORIZED"
+          },
+          "403": {
+            "description": "FORBIDDEN"
+          },
+          "429": {
+            "description": "RATE_LIMITED"
+          },
+          "503": {
+            "description": "SERVICE_UNAVAILABLE"
+          }
+        }
+      }
+    },
+    "/auth/pin": {
+      "post": {
+        "summary": "OWNER PIN save/reset or verification",
+        "description": "Current verified owner session + Origin + rate limiting. Save requires fresh password; enrolled MFA requires aal2. Output contains only verification flag/TTL/assurance, proof is HttpOnly.",
+        "security": [
+          {
+            "adminCookie": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["action", "pin"],
+                "additionalProperties": false,
+                "properties": {
+                  "action": {
+                    "enum": ["save", "verify"]
+                  },
+                  "pin": {
+                    "type": "string",
+                    "pattern": "^[0-9]{6,12}$",
+                    "writeOnly": true
+                  },
+                  "password": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 128,
+                    "writeOnly": true
+                  },
+                  "ttl_seconds": {
+                    "type": "integer",
+                    "minimum": 60,
+                    "maximum": 900
+                  },
+                  "required": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Verified; HttpOnly proof cookie set"
+          },
+          "401": {
+            "description": "Reauthentication required"
+          },
+          "403": {
+            "description": "Not owner / invalid PIN / MFA required"
+          },
+          "429": {
+            "description": "Backoff or rate limit"
+          }
+        }
+      }
+    },
+    "/api/v1/invitations/accept": {
+      "post": {
+        "summary": "Accept one-use administrator invitation",
+        "description": "Requires confirmed matching Auth identity and actual session. Never grants OWNER. Invalid, expired, revoked or reused token returns 403.",
+        "security": [
+          {
+            "adminCookie": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["token"],
+                "additionalProperties": false,
+                "properties": {
+                  "token": {
+                    "type": "string",
+                    "pattern": "^[A-Za-z0-9_-]{43}$",
+                    "writeOnly": true
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Accepted"
+          },
+          "401": {
+            "description": "Confirmed identity required"
+          },
+          "403": {
+            "description": "INVITATION_INVALID_OR_EXPIRED"
+          },
+          "429": {
+            "description": "Rate limited"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -1756,6 +3166,12 @@
       "cronBearer": {
         "type": "http",
         "scheme": "bearer"
+      },
+      "adminCookie": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "sb-<project-ref>-auth-token",
+        "description": "Supabase SSR session cookie, verified on server; name varies with project. Sensitive OWNER writes also require a session-bound HttpOnly PIN proof."
       }
     }
   }

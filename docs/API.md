@@ -32,3 +32,34 @@ Mutation requests require Origin matching NEXT_PUBLIC_SITE_URL. Native callers f
 GET /cron/publish is an optional server-only Bearer CRON_SECRET fallback; Supabase pg_cron is primary. Full paths and request shapes are in public/openapi.json. Administration is currently web cookie-based; a future Android authenticated administration flow would need a documented token contract.
 
 category-transfer accepts id (source) and transfer_to (target), requires publisher privileges, records revisions/versions and preserves the source association as secondary. Sharing preferences allow facebook/x/telegram/whatsapp/webshare/copy booleans and control public share buttons.
+
+## Stage 3 control API (OpenAPI 1.2)
+
+All control routes require a confirmed session and current permission. GET never changes configuration. POST commands remain backward compatible; PATCH aliases support users/roles/permissions/settings/menus/integrations updates. Every write checks exact Origin, strict JSON schema and shared per-user limits. Responses are private/no-store. Unknown keys are rejected, raw SQL errors are not returned.
+
+| Resource      | Read permission      | Write payload                                                                                         |
+| ------------- | -------------------- | ----------------------------------------------------------------------------------------------------- |
+| dashboard     | dashboard.read       | read only scoped aggregate                                                                            |
+| users         | users.manage         | user_id, role_id(nullable), enabled, scope(all/restricted), category_ids[], revoke                    |
+| invitations   | users.invite         | action=create,email,role_id,scope,category_ids,hours(1..168); or action=revoke,id                     |
+| roles         | roles.manage         | role_id,permission,scope(own/all),enabled                                                             |
+| permissions   | roles.manage         | user_id,permission,effect(allow/deny),scope,enabled                                                   |
+| settings      | settings.read        | key,value,version; key-specific write permission                                                      |
+| analytics     | analytics.read       | read only: from/to YYYY-MM-DD, page, optional format=csv                                              |
+| audit-logs    | audit.read           | read only: q/from/to/result/page/format=csv                                                           |
+| notifications | notifications.read   | id,action(read/unread/archive), recipient only                                                        |
+| menus         | menus.manage         | id(nullable),value{parent_id,location,label,target_type,href,category_id,is_active,sort_order},delete |
+| announcements | announcements.manage | read listing; existing /admin/ticker command mutates id/patch                                         |
+| integrations  | integrations.manage  | id,enabled,config{label?,note?},action(save/check); Supabase check only                               |
+| security      | security.manage      | read bounded real sessions/events; PIN via /auth/pin                                                  |
+| backups       | backups.read         | read explicit unverified backup status                                                                |
+
+Paths are `/api/v1/admin/{resource}`. Paginated control lists use 25 items, CMS data uses 100, session metadata is latest 50. Role catalog/grants are bounded by the fixed role/permission catalog. Analytics date window is at most 366 inclusive UTC days; top authors/categories return 25. CSV exports one selected page and neutralizes formula cells. No endpoint claims unique people or invented traffic sources.
+
+`POST /auth/pin`: action save/verify, pin, optional password (mandatory for save/reset or strong verification), ttl_seconds 60..900, required boolean. A successful response sets a session-bound HttpOnly proof; the nonce/hash/PIN is absent from JSON. Code PIN_SETUP_REQUIRED or PIN_VERIFICATION_REQUIRED means visit /admin/security; role/security writes require fresh password as well. Database backoff returns PIN_LOCKED/INVALID_PIN and shared limits return RATE_LIMITED.
+
+`POST /api/v1/invitations/accept`: token only, confirmed matching Auth user/session required. Acceptance locks the row, rechecks inviter authority and grants role exactly once. Auth invite/magic completion is same-origin and verifies tokens server-side. No public API returns invitation token hashes, PIN state, proof rows, security config, blocked emails or integration configuration.
+
+The existing public API remains compatible. Public settings add identity/home/seo/maintenance; public comment display options expose no blocklist/contact data. During maintenance public content routes return 503/Retry-After; Auth/admin/invitation/health/Cron remain available. Public APIs still require properly configured shared rate-limit server secrets.
+
+Stage 3 additions: analytics includes metrics for equal-length previous period, percentage change (nullable), average views/post and retained review-to-publish duration (nullable). `POST /api/v1/admin/security` accepts `{id: session_uuid, action:"revoke"}` with strong OWNER proof and rejects the current session (use logout). Private media settings accept max_upload_bytes 262144..5242880, allow_gif and webp_quality 40..95; unsupported keys and formats remain rejected.

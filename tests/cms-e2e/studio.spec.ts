@@ -9,7 +9,7 @@ test("editorial workflow uses real PostgreSQL RPC/RLS with local Auth/Storage fi
   await page.getByLabel("البريد الإلكتروني").fill("fixture-owner@example.test");
   await page.getByLabel("كلمة المرور").fill("Fixture-password-2026");
   await page.getByRole("button", { name: "تسجيل الدخول", exact: true }).click();
-  await expect(page).toHaveURL(/\/admin$/);
+  await expect(page).toHaveURL(/\/admin\/dashboard$/);
   await page.goto("/admin/authors");
   await page
     .getByLabel("اسم الكاتب", { exact: true })
@@ -114,7 +114,14 @@ test("editorial workflow uses real PostgreSQL RPC/RLS with local Auth/Storage fi
     .click();
   await expect(page.getByRole("status")).toContainText("أُرسل تعليقك");
   await page.goto("/admin/comments");
-  await page.getByRole("button", { name: "قبول", exact: true }).first().click();
+  const pendingComment = page
+    .locator(".catalog-card")
+    .filter({ hasText: "تعليق اختبار للمراجعة" });
+  await pendingComment
+    .getByRole("button", { name: "قبول", exact: true })
+    .click();
+  // Leave moderation only after the successful server response removes the pending row.
+  await expect(pendingComment).toHaveCount(0);
   await page.goto("/posts/browser-post-" + info.project.name);
   await expect(
     page

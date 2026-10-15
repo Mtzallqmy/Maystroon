@@ -10,7 +10,7 @@ let cat: string;
 let writer: string;
 async function actor(id: string) {
   await db.exec(
-    `reset role;set role authenticated;select set_config('request.jwt.claim.sub','${id}',false)`,
+    `reset role;insert into auth.sessions(id,user_id) values('${id}','${id}') on conflict do nothing;set role authenticated;select set_config('request.jwt.claim.sub','${id}',false);select set_config('request.jwt.claims','{"sub":"${id}","session_id":"${id}","iat":${Math.floor(Date.now() / 1000)}}',false)`,
   );
 }
 async function rpc(name: string, args: unknown[]) {
@@ -33,6 +33,9 @@ beforeAll(async () => {
   );
   await db.exec(
     "create schema storage;create table storage.buckets(id text primary key,name text,public boolean,file_size_limit bigint,allowed_mime_types text[]);create table storage.objects(id uuid primary key default gen_random_uuid(),bucket_id text,name text);alter table storage.objects enable row level security;",
+  );
+  await db.exec(
+    "create table auth.sessions(id uuid primary key,user_id uuid references auth.users(id),created_at timestamptz default now(),updated_at timestamptz default now(),aal text default 'aal1',not_after timestamptz);create function auth.jwt() returns jsonb language sql stable as $$ select coalesce(nullif(current_setting('request.jwt.claims',true),''),'{}')::jsonb $$;grant execute on function auth.jwt() to anon,authenticated;",
   );
   for (const file of readdirSync("supabase/migrations")
     .filter((f) => f.endsWith(".sql"))

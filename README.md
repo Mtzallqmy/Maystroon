@@ -32,3 +32,9 @@ The stage-2-advanced-cms branch adds the Arabic Tiptap studio, transactional pub
 Run `npm run test:cms` for desktop/mobile integration workflows. It launches a local Supabase protocol fixture (simulated Auth/Storage, actual PostgreSQL migrations/RLS/RPC); no production fixture switch or test user is added to the application. The existing `npm run test:e2e` checks empty/unconfigured public pages. `LIVE_SUPABASE_SMOKE=1 npm run test:e2e` performs opt-in read-only live database checks.
 
 Guides: docs/CMS_ARCHITECTURE.md, EDITOR_GUIDE.md, MEDIA_MANAGEMENT.md, PUBLISHING_WORKFLOW.md, COMMENTS_MODERATION.md, ANALYTICS.md, API.md and SECURITY.md. Keep service-role/rate/PIN/Cron secrets in server environment settings only. Supabase Cron is primary; Vercel preview requires the official repository connection and verified server configuration.
+
+## Stage 3 control center
+
+The `stage-3-admin-security-control-center` branch extends the same app with current database RBAC, protected owner PIN proofs, one-use invitations, administrative revocation, scoped dashboards/analytics/CSV, settings/identity/home/menu/advertisement controls, security/audit/notifications, explicit integration/backup states and maintenance. See [Stage 3 report](docs/STAGE_3_REPORT.md), [owner activation](docs/OWNER_SECURITY.md), [permissions](docs/RBAC_PERMISSIONS.md) and [administration](docs/ADMIN_ARCHITECTURE.md). No default owner/PIN, production fixtures, Telegram bot or Stage 4 integration is created.
+
+`npm run test:cms` also runs control-center desktop/mobile integration tests. Auth/Storage remain local protocol fixtures; SQL permissions/transactions run against the real migrations. Production acceptance still requires confirmed owner bootstrap, deployment server secrets, SMTP/real Auth checks and an available Vercel connection.

@@ -4,6 +4,7 @@ import { createHash, randomUUID } from "node:crypto";
 import { z } from "zod";
 import { authorizedUser } from "./auth";
 import { privilegedDatabase, publicDatabase } from "./supabase";
+import { mediaPolicySchema, settingDefaults } from "./control/settings-schema";
 import { rateLimit } from "./rate-limit";
 export const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 export function imageMagic(b: Buffer) {
@@ -39,6 +40,7 @@ export const cropSchema = z
 export async function processImage(
   input: Buffer,
   crop?: Omit<z.infer<typeof cropSchema>, "source_id">,
+  quality = 82,
 ) {
   if (input.length > MAX_IMAGE_BYTES || !imageMagic(input))
     throw new Error("INVALID_IMAGE");
@@ -79,7 +81,7 @@ export async function processImage(
         height: crop.height,
       })
       .resize(crop.output_width, crop.output_height, { fit: "fill" })
-      .webp({ quality: 85 })
+      .webp({ quality: Math.min(quality, 85) })
       .toBuffer();
     mime = "image/webp";
   }
@@ -91,17 +93,17 @@ export async function processImage(
     variants.optimized = await sharp(original)
       .rotate()
       .resize({ width: 1600, withoutEnlargement: true })
-      .webp({ quality: 82 })
+      .webp({ quality })
       .toBuffer();
     variants.thumbnail = await sharp(original)
       .rotate()
       .resize(640, 360, { fit: "cover" })
-      .webp({ quality: 78 })
+      .webp({ quality: Math.min(quality, 78) })
       .toBuffer();
     variants.social = await sharp(original)
       .rotate()
       .resize(1200, 630, { fit: "cover" })
-      .webp({ quality: 85 })
+      .webp({ quality: Math.min(quality, 85) })
       .toBuffer();
   }
   const out = await sharp(original, {
@@ -124,9 +126,20 @@ export async function storeImage(
 ) {
   const identity = await authorizedUser();
   if (!identity) throw new Error("UNAUTHORIZED");
+  if (!identity.permissions["media.manage"]) throw new Error("FORBIDDEN");
   if (!(await rateLimit(`upload:${identity.user.id}`, 20, 60)))
     throw new Error("RATE_LIMITED");
-  const processed = await processImage(bytes, crop);
+  const configured = await privilegedDatabase().rpc("media_policy_server");
+  if (configured.error) throw new Error("MEDIA_POLICY_UNAVAILABLE");
+  const policy = mediaPolicySchema.parse(
+    configured.data || settingDefaults.media,
+  );
+  if (
+    bytes.length > policy.max_upload_bytes ||
+    (!policy.allow_gif && imageMagic(bytes) === "gif")
+  )
+    throw new Error("MEDIA_POLICY_REJECTED");
+  const processed = await processImage(bytes, crop, policy.webp_quality);
   const id = randomUUID();
   const prefix = `${identity.user.id}/${id}`;
   const ext = processed.mime.split("/")[1];

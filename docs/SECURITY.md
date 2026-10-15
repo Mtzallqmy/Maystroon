@@ -30,3 +30,11 @@ Supabase advisors flag authenticated SECURITY DEFINER RPCs even when their expli
 Editor documents have byte/node/depth limits and an explicit node/mark allowlist. Rendering escapes text and sanitizes output; only HTTP/HTTPS links, generated media IDs and approved youtube-nocookie embeds render. Public pages regenerate safe markup from JSON and never trust content_html directly. Comment names/body render as text. Exact Origin is required on cookie mutations. Server secrets use server-only modules and are scanned out of browser bundles.
 
 Browser tests use a clearly isolated local fixture, not a production authentication bypass. No fixture conditional exists in application authorization. Real Supabase ownership remains unverified until a confirmed Auth UUID is inspected and bootstrapped by a trusted operator. No default PIN, password or email-only ownership elevation was created. Live authenticated security tests must precede production activation.
+
+## Stage 3 controls
+
+See OWNER_SECURITY.md and RBAC_PERMISSIONS.md. getUser + database session/permission lookup replace coarse role checks. Live-post edits and transitions require publishing rights; a bare update grant cannot unpublish content. Disabled memberships and revoked session IDs block subsequent administrative RPC/API access even after JWT refresh. Category scope is checked inside SQL for content and delegation. Invitations are confirmed-email, locked, expiring and one-use. Public users cannot read token hashes, proofs, PIN hashes, comment contacts, blocklists or integration settings.
+
+Control API writes enforce exact configured Origin, strict schemas and persistent rate limits. Server-rendered pages and SQL commands independently authorize access. Audit tables have no ordinary mutation grants. CSV exports neutralize spreadsheet formulas. Menu/advertisement destinations are validated; no executable ad snippets/CSS/JS are supported. Maintenance excludes recovery surfaces. Failures never expose raw SQL messages to control API clients.
+
+Supabase Auth invitation/magic email delivery and real MFA must be verified on deployment; local simulated Auth is not evidence of either. Password, PIN or secret values must never be put in diagnostic metadata. Fixed PIN failure stage/error-class logs contain no submitted value.

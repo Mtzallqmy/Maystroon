@@ -1,8 +1,8 @@
 import { requireAdmin } from "@/lib/auth";
 import Catalog from "@/components/editor/catalog";
 export default async function Page() {
-  const { db, roles } = await requireAdmin();
-  if (!roles.some((r) => ["OWNER", "ADMIN", "EDITOR"].includes(r)))
+  const { db, permissions } = await requireAdmin();
+  if (!permissions["categories.manage"])
     return <p>هذه الإدارة تتطلب صلاحية تحرير.</p>;
   const { data, error } = await db
     .from("categories")
