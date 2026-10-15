@@ -48,3 +48,25 @@ Run the additional CMS, scheduler and policy-review migrations in order; their r
 Set server-only SUPABASE_SERVICE_ROLE_KEY, RATE_LIMIT_SECRET (>=32 characters), PIN_PEPPER, and optional CRON_SECRET (>=32 characters) in Vercel settings. Public URL/publishable key are separate. Set NEXT_PUBLIC_SITE_URL to the exact preview/production origin because write routes validate Origin. The application does not retrieve service-role credentials through the available Supabase connector.
 
 Check /api/v1/health, anonymous reads, login/role/PIN, media upload/download, comment/view rate limits, scheduled publication, direct routes and secret scan on the actual deployment. Verify hosting request limits before permitting maximum-size multipart upload. No Vercel connection or preview deployment was available in this session; importing the official repository and configuring environment settings remains manual. Do not interpret local build/fixture tests as a verified production URL.
+
+## Stage 3 activation
+
+Configure Auth allowed redirect URLs for the real origin: /auth/callback, /auth/confirm, /auth/complete and /invite (including invitation query parameter handling). Default Supabase invite/magic links may return URL fragments; the completion pages erase them and exchange them with a same-origin server route that validates getUser. If using PKCE/token-hash email templates, route the confirmation through /auth/confirm with an allowlisted type; preserve the application invitation token for /invite. Verify SMTP delivery and link behavior with a designated nonproduction recipient before inviting real administrators. Default SMTP/template capabilities depend on the actual Supabase plan and project creation date.
+
+Set PIN_PEPPER independently of rate-limit/cron keys. Enable HTTPS so Auth/proof cookies are Secure. Bootstrap the confirmed owner UUID through the trusted operator procedure; Pending Setup must disappear only after it succeeds. Configure PIN from /admin/security before attempting sensitive owner operations. Recheck authenticated grants and real Storage/SMTP behavior before merging/deploying production.
+
+The control-retention Cron is independent of content scheduling. Check cron.job_run_details for actual success; a configured schedule alone is not evidence of a successful backup or task run. Vercel Preview remains contingent on an available official repository integration and valid environment settings.
+
+### Remaining migrations after the connector failure
+
+Only control_01_admin_schema and control_02_admin_default_grants are recorded live for Stage 3. Their file timestamps match the server ledger. The remaining 17 files sort after them and replay successfully in local PostgreSQL tests. Do not deploy Stage 3 against this partial schema.
+
+After restoring an authorized Supabase connection, inspect the migration history first. A trusted operator may use the current CLI (credentials through its secure login/password flow, never chat or shell-history arguments):
+
+```sh
+npx supabase link --project-ref ttvasynaxkkcwrmvlorg
+npx supabase db push --dry-run --skip-vault
+npx supabase db push --skip-vault
+```
+
+Review the dry-run order and project ref before applying. No config.toml Vault values are needed for this project, so --skip-vault avoids unrelated secret changes. Do not repair/edit the ledger merely to mark unapplied SQL as complete. Recheck RLS/advisors, Auth identity, APIs, Storage and actual Cron execution afterward.

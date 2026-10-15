@@ -9,3 +9,13 @@ Raw daily hashes are deleted after 30 days. Daily numeric aggregates persist and
 Search indexes weighted title, excerpt and original plain-text content with PostgreSQL `simple` full-text search plus Arabic normalization (alef forms, diacritics, tatweel, final ya). Normalization affects the index/query, not the original publication. Section/author filters, chronological sorting and pagination are independent of AI.
 
 Tests cover normalized Arabic forms and original text preservation. This implementation is token search, not Arabic stemming, root extraction, typo tolerance or semantic search. Searching a bare token and a token with a definite article can differ; that limitation should inform later search-quality work. Query inputs are validated and values passed through the Supabase client.
+
+## Stage 3 authorized control center
+
+/admin/analytics uses database-scoped aggregates over retained daily counters. It displays daily trends, per-post views/comments, top categories and authors, editorial status counts and bounded date filtering/pagination. Day buckets are UTC and are labeled; publication editing uses Asia/Aden. A multi-category post contributes to each category, so category totals overlap. Values describe counted views, not unique people. No referrer/device information is inferred.
+
+CSV exports the current authorized page. Empty graphs show a clear empty state; the keyboard-accessible chart has a tabular equivalent. Review duration is derived from retained review/publish audit pairs as described below; traffic source/device analytics are unavailable. Administrative sessions are security records, not visitor analytics.
+
+### Completed period/review metrics
+
+admin_period_metrics compares the selected inclusive UTC period with the immediately preceding period of equal length. Percentage change is null when the previous value is zero. Average views divide counted period views by the actual scoped post count. Review duration pairs each retained publish event with its latest preceding post_review event; missing/expired audit pairs remain null and are explicitly labeled. These are retained event measurements, not a claim that all historical editorial time is known. Integration tests verify a real 12-vs-6 count comparison and a two-hour review pair in the local SQL fixture.
