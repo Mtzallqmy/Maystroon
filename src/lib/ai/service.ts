@@ -14,7 +14,7 @@ import {
   editorialActions,
 } from "../../../packages/contracts/ai";
 import { privilegedDatabase } from "../supabase";
-import { configuration, provider } from "./runtime";
+import { configuration, provider, embeddingModelKey } from "./runtime";
 import { requirePermission } from "../auth";
 export type Subject = { session: string; visitor: string; userId?: string };
 const hash = (s: string) => createHash("sha256").update(s).digest("hex");
@@ -129,7 +129,7 @@ async function retrieve(
   const { data, error } = await privilegedDatabase().rpc("ai_retrieve", {
     p_query: question,
     p_embedding: embedding ? JSON.stringify(embedding) : null,
-    p_model: config.embedding_model || process.env.AI_EMBEDDING_MODEL || "",
+    p_model: embeddingModelKey(config),
     p_post: postId || null,
     p_limit: 6,
   });
@@ -340,6 +340,32 @@ export async function editorialFromSource(
         .replace(/https?:\/\/\S+/g, ""),
       request_id: requestId,
       automated: true,
+    };
+  } catch (error) {
+    await finish(requestId, started, result, error);
+    throw error;
+  }
+}
+export async function testProvider(subject: Subject, signal?: AbortSignal) {
+  const config = await configuration(),
+    started = Date.now(),
+    requestId = await reserve(
+      subject,
+      config,
+      "connection_test",
+      "Reply with a short Arabic greeting.",
+    );
+  let result: Generation | undefined;
+  try {
+    result = await provider(config).generate(
+      [{ role: "user", content: "أجب بتحية عربية قصيرة فقط." }],
+      signal,
+    );
+    await finish(requestId, started, result);
+    return {
+      ok: true,
+      sample: result.text.slice(0, 200),
+      request_id: requestId,
     };
   } catch (error) {
     await finish(requestId, started, result, error);

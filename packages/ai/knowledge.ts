@@ -105,7 +105,7 @@ export function validateAnswer(raw: string, passages: Passage[]) {
     if (
       !source ||
       !spaces(source.chunk_text).includes(spaces(claim.quote)) ||
-      !source.source_url.startsWith("/posts/") ||
+      !/^\/posts\/[\p{L}\p{N}_%-]+$/u.test(source.source_url) ||
       source.source_url.startsWith("//")
     )
       throw new AIError("AI_UNGROUNDED_OUTPUT");

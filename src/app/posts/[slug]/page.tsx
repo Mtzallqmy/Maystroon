@@ -1,3 +1,4 @@
+import { SummaryLauncher } from "@/components/ai/launcher";
 import { notFound, permanentRedirect } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
@@ -188,6 +189,7 @@ export default async function Article({
           )}
           <Advertisements items={ads} placement="article_after" />
 
+          <SummaryLauncher postId={p.id} />
           <ArticleActions
             id={p.id}
             title={p.title}

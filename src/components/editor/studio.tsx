@@ -1,4 +1,5 @@
 "use client";
+import { EditorAiTools } from "@/components/ai/editor-tools";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
@@ -359,6 +360,7 @@ export default function Studio({
   };
   return (
     <div className={`studio ${focus ? "distraction-free" : ""}`}>
+      <EditorAiTools postId={record.id} />
       <div className="studio-top">
         <h1>استوديو التحرير</h1>
         <span role="status">

@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import "server-only";
 import {
   CompatibleProvider,
@@ -79,4 +80,13 @@ export async function status() {
       reason: error instanceof AIError ? error.code : "AI_UNAVAILABLE",
     };
   }
+}
+
+export function embeddingModelKey(settings: AISettings) {
+  const model =
+    settings.embedding_model || process.env.AI_EMBEDDING_MODEL || "";
+  return `${model.slice(0, 100)}@${settings.provider}:${createHash("sha256")
+    .update(JSON.stringify([process.env.AI_BASE_URL || "", model]))
+    .digest("hex")
+    .slice(0, 24)}`;
 }

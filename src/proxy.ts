@@ -12,6 +12,7 @@ export async function proxy(request: NextRequest) {
     path.startsWith("/invite") ||
     path.startsWith("/api/v1/admin") ||
     path.startsWith("/api/v1/invitations") ||
+    path.startsWith("/api/v1/internal/automation/") ||
     path === "/api/v1/health" ||
     path.startsWith("/api/cron") ||
     path.startsWith("/api/v1/cron/") ||

@@ -1,6 +1,6 @@
 import "server-only";
 import { privilegedDatabase } from "../supabase";
-import { configuration, provider } from "../ai/runtime";
+import { configuration, provider, embeddingModelKey } from "../ai/runtime";
 import { chunks } from "../../../packages/ai/knowledge";
 import { AIError } from "../../../packages/ai/provider";
 import {
@@ -71,7 +71,16 @@ async function indexJob(job: Job) {
     return;
   }
   const all = chunks(`${post.title}\n${post.excerpt || ""}\n${post.content}`),
-    cursor = Number(job.payload.cursor) || 0,
+    cursor =
+      Number(
+        checked(
+          await db.rpc("ai_index_prepare", {
+            p_id: job.id,
+            p_lease: job.lease_token,
+            p_model: embeddingModelKey(config),
+          }),
+        ),
+      ) || 0,
     batch = all.slice(cursor, cursor + 16);
   if (!batch.length) {
     checked(
@@ -88,7 +97,7 @@ async function indexJob(job: Job) {
     await db.rpc("ai_stage_batch", {
       p_id: job.id,
       p_lease: job.lease_token,
-      p_model: model,
+      p_model: embeddingModelKey(config),
       p_chunks: batch.map((chunk, i) => ({ ...chunk, embedding: vectors[i] })),
       p_done: cursor + batch.length >= all.length,
     }),

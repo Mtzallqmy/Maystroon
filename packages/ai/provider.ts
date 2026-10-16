@@ -54,9 +54,9 @@ async function boundedText(response: Response, max = 256000) {
     reader.releaseLock();
   }
 }
+const circuits = new Map<string, { failures: number; openUntil: number }>();
 export class CompatibleProvider implements AIProvider {
-  private failures = 0;
-  private openUntil = 0;
+  private circuit: { failures: number; openUntil: number };
   private base: string;
   constructor(
     private config: ProviderConfig,
@@ -77,6 +77,12 @@ export class CompatibleProvider implements AIProvider {
     )
       throw new AIError("PROVIDER_URL_INVALID");
     this.base = url.href.replace(/\/$/, "");
+    const key = this.base + "|" + config.model;
+    this.circuit =
+      transport === fetch
+        ? circuits.get(key) || { failures: 0, openUntil: 0 }
+        : { failures: 0, openUntil: 0 };
+    if (transport === fetch) circuits.set(key, this.circuit);
   }
   private async request(
     path: string,
@@ -84,7 +90,8 @@ export class CompatibleProvider implements AIProvider {
     signal?: AbortSignal,
     stream = false,
   ) {
-    if (Date.now() < this.openUntil) throw new AIError("PROVIDER_BACKOFF");
+    if (Date.now() < this.circuit.openUntil)
+      throw new AIError("PROVIDER_BACKOFF");
     const timeout = AbortSignal.timeout(this.config.timeoutMs);
     const combined = signal ? AbortSignal.any([signal, timeout]) : timeout;
     try {
@@ -112,14 +119,15 @@ export class CompatibleProvider implements AIProvider {
         );
       }
       if (stream) {
-        this.failures = 0;
+        this.circuit.failures = 0;
         return res;
       }
       const data = JSON.parse(await boundedText(res));
-      this.failures = 0;
+      this.circuit.failures = 0;
       return data;
     } catch (error) {
-      if (++this.failures >= 3) this.openUntil = Date.now() + 30000;
+      if (++this.circuit.failures >= 3)
+        this.circuit.openUntil = Date.now() + 30000;
       if (signal?.aborted) throw new AIError("CANCELLED");
       if (timeout.aborted) throw new AIError("PROVIDER_TIMEOUT");
       if (error instanceof AIError) throw error;

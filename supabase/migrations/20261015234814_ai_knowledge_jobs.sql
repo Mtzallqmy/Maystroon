@@ -157,6 +157,7 @@ begin
  select * into job from public.automation_jobs where id=p_id and lease_token=p_lease and kind='index' and status='running' and lease_until>now() for update;if not found then raise exception 'STALE_LEASE';end if;
  select * into post from public.posts where id=(job.payload->>'post_id')::uuid for update;
  if not found or post.status<>'published' or post.visibility<>'public' or post.deleted_at is not null or post.published_at>now() or post.version<>(job.payload->>'version')::bigint then delete from public.ai_index_staging where job_id=p_id;perform public.automation_finish(p_id,p_lease,true,null);return false;end if;
+ if job.payload->>'model_key' is distinct from p_model then raise exception 'INDEX_MODEL_CHANGED';end if;
  if jsonb_array_length(p_chunks)>16 then raise exception 'BATCH_TOO_LARGE';end if;
  for chunk in select value from jsonb_array_elements(p_chunks) loop
  insert into public.ai_index_staging values(p_id,(chunk->>'index')::int,chunk->>'text',(chunk->'embedding')::text::extensions.vector,chunk->>'hash') on conflict(job_id,chunk_index) do update set chunk_text=excluded.chunk_text,embedding=excluded.embedding,content_hash=excluded.content_hash;end loop;
@@ -195,3 +196,24 @@ begin
 end $$;
 revoke all on function public.automation_daily() from public,anon,authenticated;grant execute on function public.automation_daily() to service_role;
 do $$begin if exists(select 1 from pg_namespace where nspname='cron') then perform cron.schedule('maystroon-automation-daily','0 17 * * *','select public.automation_daily();');end if;end $$;
+
+create or replace function public.ai_index_prepare(p_id uuid,p_lease uuid,p_model text) returns int language plpgsql security definer set search_path='' as $$
+declare job public.automation_jobs;
+begin
+ select * into job from public.automation_jobs where id=p_id and lease_token=p_lease and kind='index' and status='running' and lease_until>now() for update;if not found then raise exception 'STALE_LEASE';end if;
+ if job.payload->>'model_key' is distinct from p_model then
+ delete from public.ai_index_staging where job_id=p_id;
+ update public.automation_jobs set payload=payload||jsonb_build_object('model_key',p_model,'cursor',0) where id=p_id;return 0;end if;
+ return coalesce((job.payload->>'cursor')::int,0);
+end $$;
+revoke all on function public.ai_index_prepare(uuid,uuid,text) from public,anon,authenticated;grant execute on function public.ai_index_prepare(uuid,uuid,text) to service_role;
+
+create or replace function private.automation_failed_notification() returns trigger language plpgsql security definer set search_path='' as $$
+begin
+ if new.status='dead' and old.status<>'dead' and new.kind in ('index','telegram') then
+ insert into public.admin_notifications(user_id,kind,title,href,priority,context) select user_id,'automation','فشل مهمة تكامل بعد المحاولات المحدودة','/admin/ai/knowledge','high',jsonb_build_object('job_id',new.id) from public.admin_memberships where enabled and private.permission_scope_for(user_id,'integrations.manage') is not null;
+ end if;return new;
+end $$;
+revoke all on function private.automation_failed_notification() from public,anon,authenticated;
+drop trigger if exists automation_failed_notification on public.automation_jobs;
+create trigger automation_failed_notification after update of status on public.automation_jobs for each row execute function private.automation_failed_notification();

@@ -149,9 +149,11 @@ export async function processTelegram(
       p_state: state ?? null,
       p_state_version: version ?? null,
     });
-  if (/^\/start [a-f0-9]{64}$/.test(text)) {
+  if (/^\/(?:start|link) [a-f0-9]{64}$/.test(text)) {
     await rpc("telegram_consume_link", {
-      p_hash: linkHash(text.split(" ")[1]),
+      p_hash: text.startsWith("/link ")
+        ? text.split(" ")[1]
+        : linkHash(text.split(" ")[1]),
       p_telegram_id: id,
     });
     text = "/start";
