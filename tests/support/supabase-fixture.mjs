@@ -1,10 +1,11 @@
+import { vector } from "@electric-sql/pglite-pgvector";
 // Local integration fixture only. Never deploy or point a production app here.
 // Auth/Storage protocols are simulated; content authorization executes the real SQL migrations.
 import { randomUUID } from "node:crypto";
 import { createServer } from "node:http";
 import { PGlite } from "@electric-sql/pglite";
 import { readFileSync, readdirSync } from "node:fs";
-const db = new PGlite();
+const db = new PGlite({ extensions: { vector } });
 const bytes = new Map();
 const owner = "11111111-1111-4111-8111-111111111111";
 await db.exec(

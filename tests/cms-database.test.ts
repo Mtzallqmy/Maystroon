@@ -1,3 +1,4 @@
+import { vector } from "@electric-sql/pglite-pgvector";
 import { beforeAll, afterAll, it, expect } from "vitest";
 import { PGlite } from "@electric-sql/pglite";
 import { readFileSync, readdirSync } from "node:fs";
@@ -27,7 +28,7 @@ async function rpc(name: string, args: unknown[]) {
   return rows[0].data;
 }
 beforeAll(async () => {
-  db = new PGlite();
+  db = new PGlite({ extensions: { vector } });
   await db.exec(
     `create role anon;create role authenticated;create role authenticator;create role service_role bypassrls;create schema auth;create table auth.users(id uuid primary key,email text,email_confirmed_at timestamptz);create function auth.uid() returns uuid language sql stable as $$ select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid $$;grant usage on schema auth to anon,authenticated;grant execute on function auth.uid() to anon,authenticated;`,
   );

@@ -1,3 +1,4 @@
+import { vector } from "@electric-sql/pglite-pgvector";
 import { beforeAll, afterAll, beforeEach, it, expect } from "vitest";
 import { PGlite } from "@electric-sql/pglite";
 import { readFileSync, readdirSync } from "node:fs";
@@ -23,7 +24,7 @@ async function scalar<T = unknown>(sql: string, args: unknown[] = []) {
   return (await db.query<{ v: T }>(sql, args)).rows[0]?.v;
 }
 beforeAll(async () => {
-  db = new PGlite();
+  db = new PGlite({ extensions: { vector } });
   await db.exec(
     `create role anon;create role authenticated;create role authenticator;create role service_role bypassrls;create schema auth;create table auth.users(id uuid primary key,email text,email_confirmed_at timestamptz);create table auth.sessions(id uuid primary key,user_id uuid references auth.users(id),created_at timestamptz default now(),updated_at timestamptz default now(),aal text default 'aal1',not_after timestamptz);create function auth.uid() returns uuid language sql stable as $$ select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid $$;create function auth.jwt() returns jsonb language sql stable as $$ select coalesce(nullif(current_setting('request.jwt.claims',true),''),'{}')::jsonb $$;grant usage on schema auth to anon,authenticated;grant execute on function auth.uid(),auth.jwt() to anon,authenticated;create schema storage;create table storage.buckets(id text primary key,name text,public boolean,file_size_limit bigint,allowed_mime_types text[]);create table storage.objects(id uuid primary key default gen_random_uuid(),bucket_id text,name text);alter table storage.objects enable row level security;grant usage on schema storage to authenticated;grant select,insert on storage.objects to authenticated;`,
   );
