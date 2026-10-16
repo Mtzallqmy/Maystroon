@@ -3,6 +3,9 @@ const host = process.env.NEXT_PUBLIC_SUPABASE_URL
   ? new URL(process.env.NEXT_PUBLIC_SUPABASE_URL).hostname
   : undefined;
 const config: NextConfig = {
+  // Repeated production builds hit corrupt persistent cache snapshots in this
+  // workspace. Opt out of build-only disk reuse; runtime caching is unchanged.
+  experimental: { turbopackFileSystemCacheForBuild: false },
   images: {
     formats: ["image/avif", "image/webp"],
     remotePatterns: host

@@ -9,3 +9,8 @@ test-results/
 *.tsbuildinfo
 
 supabase/.temp/
+
+.venv/
+__pycache__/
+.ruff_cache/
+*.pyc

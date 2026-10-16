@@ -38,3 +38,11 @@ See OWNER_SECURITY.md and RBAC_PERMISSIONS.md. getUser + database session/permis
 Control API writes enforce exact configured Origin, strict schemas and persistent rate limits. Server-rendered pages and SQL commands independently authorize access. Audit tables have no ordinary mutation grants. CSV exports neutralize spreadsheet formulas. Menu/advertisement destinations are validated; no executable ad snippets/CSS/JS are supported. Maintenance excludes recovery surfaces. Failures never expose raw SQL messages to control API clients.
 
 Supabase Auth invitation/magic email delivery and real MFA must be verified on deployment; local simulated Auth is not evidence of either. Password, PIN or secret values must never be put in diagnostic metadata. Fixed PIN failure stage/error-class logs contain no submitted value.
+
+## Stage 4 controls and current live gap
+
+See TELEGRAM_SECURITY.md, AI_PRIVACY.md, AI_USAGE_LIMITS.md and STAGE_4_REPORT.md. Service-only gateway RPCs bind every Telegram action to a current verified Auth session; HMAC/nonce validation, update receipts and fenced outbox leases protect transport. No public chat tools or administrative model actions exist. Sources are rechecked for publication and version before returning grounded output; model citations cannot supply arbitrary URLs.
+
+Prompt injection defenses are layered constraints, not a proof of model obedience or factual correctness. UI rendering rejects executable Markdown/HTML. Private editorial text is opt-in and permission checked. Secret values remain in host settings and are scanned from browser bundles. Exact quote matching proves a quote exists in a retrieved passage, not that every model inference is sound.
+
+On 16 October the anonymous EXECUTE privileges on admin_update_setting and owner_setup_state were revoked live and independently verified. Full pending control/automation migrations still require completion and live session/RLS checks. The final advisors show 21 authenticated SECURITY DEFINER findings and seven intentional private deny-all RLS notices; do not declare the live database fully audited or production ready.

@@ -1,3 +1,4 @@
+import { FloatingAssistant } from "@/components/ai/launcher";
 import "@fontsource/ibm-plex-sans-arabic/400.css";
 import "@fontsource/ibm-plex-sans-arabic/600.css";
 import "@fontsource/noto-naskh-arabic/700.css";
@@ -108,6 +109,7 @@ export default async function Layout({
             <p className="copyright">{identity.footer}</p>
           </div>
         </footer>
+        <FloatingAssistant />
       </body>
     </html>
   );

@@ -24,6 +24,8 @@ export const adminLinks: AdminLink[] = [
   ["security", "مركز الأمان", "security.manage"],
   ["audit-logs", "سجل التدقيق", "audit.read"],
   ["notifications", "الإشعارات", "notifications.read"],
+  ["ai", "الذكاء الاصطناعي", "integrations.manage"],
+  ["telegram", "حساب Telegram", ""],
   ["integrations", "التكاملات", "integrations.manage"],
   ["backups", "النسخ الاحتياطية", "backups.read"],
   ["account", "حسابي", ""],

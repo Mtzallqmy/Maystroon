@@ -1,7 +1,7 @@
 {
   "name": "maystroon",
   "version": "0.1.0",
-  "description": "Arabic editorial platform \u2014 Stage 2 CMS",
+  "description": "Arabic editorial platform — Stage 4 automation",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -14,7 +14,9 @@
     "test:e2e": "playwright test",
     "db:test": "vitest run tests/database.test.ts",
     "security:client": "node scripts/check-client-secrets.mjs",
-    "test:cms": "playwright test --config playwright.cms.config.ts"
+    "test:cms": "playwright test --config playwright.cms.config.ts",
+    "test:python": "PYTHONPATH=services/telegram-bot python -m unittest discover -s services/telegram-bot/tests -v",
+    "lint:python": "python -m ruff check services/telegram-bot && python -m ruff format --check services/telegram-bot"
   },
   "repository": {
     "type": "git",
@@ -52,6 +54,7 @@
     "react-dom": "19.3.0",
     "react-easy-crop": "6.2.4",
     "react-hook-form": "7.90.0",
+    "react-markdown": "10.1.0",
     "sanitize-html": "2.18.0",
     "server-only": "0.0.1",
     "sharp": "0.35.5",
@@ -59,7 +62,8 @@
     "zod": "4.6.7"
   },
   "devDependencies": {
-    "@electric-sql/pglite": "0.5.9",
+    "@electric-sql/pglite": "0.5.10",
+    "@electric-sql/pglite-pgvector": "0.0.11",
     "@playwright/test": "1.64.0",
     "@sparticuz/chromium": "153.0.0",
     "@tailwindcss/postcss": "4.3.3",

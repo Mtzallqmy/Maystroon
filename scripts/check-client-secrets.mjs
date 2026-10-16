@@ -4,7 +4,16 @@ function walk(path) {
     e.isDirectory() ? walk(path + "/" + e.name) : [path + "/" + e.name],
   );
 }
-const names = ["SUPABASE_SERVICE_ROLE_KEY", "PIN_PEPPER", "RATE_LIMIT_SECRET"];
+const names = [
+  "SUPABASE_SERVICE_ROLE_KEY",
+  "PIN_PEPPER",
+  "RATE_LIMIT_SECRET",
+  "AI_API_KEY",
+  "TELEGRAM_BOT_TOKEN",
+  "TELEGRAM_WEBHOOK_SECRET",
+  "TELEGRAM_GATEWAY_SECRET",
+  "CRON_SECRET",
+];
 const needles = [...names, ...names.map((n) => process.env[n]).filter(Boolean)];
 const leaked = walk(".next/static")
   .filter((p) => /\.(js|map|json)$/.test(p))

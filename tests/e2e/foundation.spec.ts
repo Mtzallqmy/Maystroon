@@ -66,3 +66,36 @@ test("mobile menu and reduced motion", async ({ page }, info) => {
   await page.goto("/search");
   await expect(page.getByText("البحث قيد التجهيز")).toBeVisible();
 });
+
+test("disabled AI stays accessible and signed gateways reject visitors", async ({
+  page,
+  request,
+}) => {
+  await page.goto("/");
+  await page
+    .getByRole("button", { name: "فتح مساعد ما يسطرون", exact: true })
+    .click();
+  await expect(page.locator("#ai-panel")).toContainText("المساعد غير مفعّل");
+  await expect(page.getByLabel("سؤالك عن ما يسطرون")).toBeDisabled();
+  await page.keyboard.press("Escape");
+  await expect(page.locator("#ai-panel")).toHaveCount(0);
+  expect((await request.get("/api/v1/ai/status")).status()).toBe(200);
+  expect(
+    (
+      await request.post("/api/v1/ai/chat", { data: { message: "سؤال" } })
+    ).status(),
+  ).toBe(503);
+  expect(
+    (
+      await request.post("/api/v1/ai/chat", {
+        headers: { Origin: "https://untrusted.invalid" },
+        data: { message: "سؤال" },
+      })
+    ).status(),
+  ).toBe(403);
+  expect(
+    (
+      await request.post("/api/v1/internal/automation/work", { data: {} })
+    ).status(),
+  ).toBe(401);
+});
