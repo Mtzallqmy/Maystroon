@@ -1,4 +1,6 @@
 import "server-only";
+import { createHash } from "node:crypto";
+import { embedTracked } from "../ai/service";
 import { privilegedDatabase } from "../supabase";
 import { configuration, provider, embeddingModelKey } from "../ai/runtime";
 import { chunks } from "../../../packages/ai/knowledge";
@@ -92,7 +94,30 @@ async function indexJob(job: Job) {
     );
     return;
   }
-  const vectors = await provider(config).embed(batch.map((c) => c.text));
+  let vectors: number[][];
+  try {
+    const digest = (text: string) =>
+      createHash("sha256").update(text).digest("hex");
+    vectors = await embedTracked(
+      batch.map((c) => c.text),
+      config,
+      {
+        session: digest("index:" + post.id),
+        visitor: digest("indexer:" + new Date().toISOString().slice(0, 10)),
+      },
+    );
+  } catch (error) {
+    if (error instanceof AIError && error.code === "AI_QUOTA_EXCEEDED") {
+      checked(
+        await db.rpc("automation_defer", {
+          p_id: job.id,
+          p_lease: job.lease_token,
+        }),
+      );
+      return;
+    }
+    throw error;
+  }
   checked(
     await db.rpc("ai_stage_batch", {
       p_id: job.id,

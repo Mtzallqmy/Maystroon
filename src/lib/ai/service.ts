@@ -23,6 +23,7 @@ export async function reserve(
   config: AISettings,
   type: string,
   input: string,
+  model?: string,
 ) {
   const requestId = randomUUID();
   const { error } = await privilegedDatabase().rpc("ai_reserve", {
@@ -31,7 +32,7 @@ export async function reserve(
     p_visitor: subject.visitor,
     p_user: subject.userId || null,
     p_provider: config.provider,
-    p_model: config.model || process.env.AI_MODEL || "",
+    p_model: model || config.model || process.env.AI_MODEL || "",
     p_type: type,
     p_tokens: Buffer.byteLength(input, "utf8") + config.max_output_tokens,
   });
@@ -53,24 +54,20 @@ async function finish(
 ) {
   const input = result?.inputTokens,
     output = result?.outputTokens;
-  const { error: dbError } = await privilegedDatabase()
-    .from("ai_usage")
-    .update({
-      input_tokens: input ?? null,
-      output_tokens: output ?? null,
-      token_accuracy:
-        input !== undefined && output !== undefined ? "reported" : "estimated",
-      status: error
-        ? error instanceof AIError && error.code === "CANCELLED"
-          ? "cancelled"
-          : "failed"
-        : "success",
-      error_code:
-        error instanceof AIError ? error.code : error ? "AI_FAILED" : null,
-      latency_ms: Date.now() - started,
-      finished_at: new Date().toISOString(),
-    })
-    .eq("request_id", id);
+  const { error: dbError } = await privilegedDatabase().rpc("ai_usage_finish", {
+    p_id: id,
+    p_input: input ?? null,
+    p_output: output ?? null,
+    p_accuracy:
+      input !== undefined && output !== undefined ? "reported" : "estimated",
+    p_latency: Date.now() - started,
+    p_status: error
+      ? error instanceof AIError && error.code === "CANCELLED"
+        ? "cancelled"
+        : "failed"
+      : "success",
+    p_error: error instanceof AIError ? error.code : error ? "AI_FAILED" : null,
+  });
   if (dbError) throw new AIError("USAGE_FINALIZATION_FAILED");
 }
 async function publicPost(id: string) {
@@ -114,13 +111,14 @@ async function retrieve(
   config: AISettings,
   postId?: string,
   signal?: AbortSignal,
+  subject?: Subject,
 ) {
   const client = provider(config);
   let embedding: number[] | null = null;
   let mode: "hybrid" | "keyword" = "keyword";
   if (client.getCapabilities().embeddings) {
     try {
-      embedding = (await client.embed([question], signal))[0];
+      embedding = (await embedTracked([question], config, subject!, signal))[0];
       mode = "hybrid";
     } catch (error) {
       if (signal?.aborted) throw error;
@@ -192,6 +190,7 @@ export async function answerQuestion(
       config,
       input.post_id,
       signal,
+      subject,
     );
     if (!passages.length) {
       await finish(requestId, started, { text: "" });
@@ -240,6 +239,7 @@ export async function summarize(
       post.id,
       post.version,
       config.provider,
+      process.env.AI_BASE_URL || "",
       config.model || process.env.AI_MODEL,
       input.type,
       "grounded-v1",
@@ -369,6 +369,83 @@ export async function testProvider(subject: Subject, signal?: AbortSignal) {
     };
   } catch (error) {
     await finish(requestId, started, result, error);
+    throw error;
+  }
+}
+
+export async function embedTracked(
+  texts: string[],
+  config: AISettings,
+  subject: Subject,
+  signal?: AbortSignal,
+) {
+  const id = await reserve(
+      subject,
+      config,
+      "embedding",
+      texts.join("\n"),
+      config.embedding_model || process.env.AI_EMBEDDING_MODEL,
+    ),
+    started = Date.now();
+  try {
+    const result = await provider(config).embed(texts, signal);
+    await finish(id, started, { text: "" });
+    return result;
+  } catch (error) {
+    await finish(id, started, undefined, error);
+    throw error;
+  }
+}
+export async function searchKnowledge(
+  input: { message: string; related_post_id?: string },
+  subject: Subject,
+  signal?: AbortSignal,
+): Promise<AIAnswer> {
+  const config = await configuration();
+  provider(config);
+  const post = input.related_post_id
+    ? await publicPost(input.related_post_id)
+    : null;
+  const question = post
+    ? `${post.title} ${post.excerpt || ""}`.slice(0, 500)
+    : input.message;
+  const id = await reserve(subject, config, "search", question),
+    started = Date.now();
+  try {
+    const { passages, mode } = await retrieve(
+      question,
+      config,
+      undefined,
+      signal,
+      subject,
+    );
+    if (!(await stillPublished(passages))) throw new AIError("SOURCE_CHANGED");
+    const unique = [
+      ...new Map(
+        passages
+          .filter((p) => p.post_id !== input.related_post_id)
+          .map((p) => [p.post_id, p]),
+      ).values(),
+    ];
+    const sources = unique.map((p, i) => ({
+      id: i + 1,
+      post_id: p.post_id,
+      title: p.title,
+      url: p.source_url,
+      quote: p.chunk_text.slice(0, 180),
+    }));
+    await finish(id, started, { text: "" });
+    return {
+      answer: sources.length
+        ? "نتائج البحث في المقالات المنشورة، دون توليد نص بالذكاء الاصطناعي."
+        : "لا توجد مقالات منشورة مرتبطة متاحة.",
+      sources,
+      request_id: id,
+      automated: true,
+      retrieval: mode,
+    };
+  } catch (error) {
+    await finish(id, started, undefined, error);
     throw error;
   }
 }

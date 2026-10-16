@@ -26,6 +26,12 @@ export const chatInput = z
     stream: z.boolean().optional(),
   })
   .strict();
+export const searchInput = z
+  .object({
+    message: z.string().trim().min(2).max(100),
+    related_post_id: z.uuid().optional(),
+  })
+  .strict();
 export const summaryInput = z
   .object({
     post_id: z.uuid(),

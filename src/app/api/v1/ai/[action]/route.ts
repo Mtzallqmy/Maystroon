@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import {
   chatInput,
+  searchInput,
   summaryInput,
 } from "../../../../../../packages/contracts/ai";
-import { answerQuestion, summarize } from "@/lib/ai/service";
+import { answerQuestion, summarize, searchKnowledge } from "@/lib/ai/service";
 import { status } from "@/lib/ai/runtime";
 import { aiSubject, aiCookie, aiFailure } from "@/lib/ai/http";
 import { sameOrigin } from "@/lib/origin";
@@ -35,7 +36,7 @@ export async function POST(
     const raw = await req.text();
     if (raw.length > 6000) return failure("PAYLOAD_TOO_LARGE", 413);
     const action = (await params).action;
-    if (!["chat", "summarize"].includes(action))
+    if (!["chat", "summarize", "search"].includes(action))
       return failure("NOT_FOUND", 404);
     const input = JSON.parse(raw);
     const { subject, token } = aiSubject(req);
@@ -44,7 +45,9 @@ export async function POST(
     const data =
       action === "chat"
         ? await answerQuestion(chatInput.parse(input), subject, req.signal)
-        : await summarize(summaryInput.parse(input), subject, req.signal);
+        : action === "search"
+          ? await searchKnowledge(searchInput.parse(input), subject, req.signal)
+          : await summarize(summaryInput.parse(input), subject, req.signal);
     // Grounding and the final publication/version check finish before any model output is exposed.
     const response =
       input.stream && available.streaming

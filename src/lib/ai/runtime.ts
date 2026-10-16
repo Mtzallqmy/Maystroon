@@ -48,8 +48,9 @@ export function provider(settings: AISettings): AIProvider {
     streaming:
       settings.streaming && process.env.AI_STREAMING_SUPPORTED === "true",
     allowTestHttp:
-      process.env.NODE_ENV !== "production" &&
-      process.env.AI_ALLOW_TEST_HTTP === "true",
+      process.env.AI_ALLOW_TEST_HTTP === "true" &&
+      (process.env.NODE_ENV !== "production" ||
+        process.env.MAYSTROON_TEST_FIXTURE === "true"),
   };
   return settings.provider === "botkeep"
     ? new BotKeepAdapter(config)

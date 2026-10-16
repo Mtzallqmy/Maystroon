@@ -11,6 +11,7 @@ create table if not exists public.telegram_links(
 alter table public.telegram_links enable row level security;
 revoke all on public.telegram_links from public,anon,authenticated;
 grant select on public.telegram_links to authenticated;
+drop policy if exists telegram_link_self on public.telegram_links;
 create policy telegram_link_self on public.telegram_links for select to authenticated using(user_id=(select auth.uid()) and (select private.actor_active(auth.uid())));
 create table if not exists private.telegram_link_tokens(
  token_hash text primary key check(token_hash ~ '^[a-f0-9]{64}$'),user_id uuid not null references auth.users(id) on delete cascade,

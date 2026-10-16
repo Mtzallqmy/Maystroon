@@ -18,6 +18,9 @@ for (const f of readdirSync("supabase/migrations")
 await db.exec(
   `insert into auth.users values('${owner}','fixture-owner@example.test',now());insert into profiles(id,display_name) values('${owner}','مالك اختبار محلي');insert into user_roles(user_id,role_id) select '${owner}',id from roles where name='OWNER';insert into auth.sessions(id,user_id) values('${owner}','${owner}');update private.owner_bootstrap set completed_at=now(),user_id='${owner}';`,
 );
+await db.exec(
+  "update ai_configuration set enabled=true,model='fixture-generation',embedding_model='fixture-embedding',streaming=true",
+);
 const users = new Map();
 for (const [id, email, roleName] of [
   [owner, "fixture-owner@example.test", "OWNER"],
@@ -174,7 +177,7 @@ createServer((req, res) => {
           const b = JSON.parse(raw || "{}");
           const meta = (
             await db.query(
-              `select proargnames, array(select format_type(x,null) from unnest(proargtypes::oid[]) x) as types from pg_proc where pronamespace='public'::regnamespace and proname=$1`,
+              `select proargnames,proretset, array(select format_type(x,null) from unnest(proargtypes::oid[]) x) as types from pg_proc where pronamespace='public'::regnamespace and proname=$1`,
               [name],
             )
           ).rows[0];
@@ -195,10 +198,7 @@ createServer((req, res) => {
             binds,
           );
           const values = q.rows.map((x) => x.data);
-          return json(
-            200,
-            ["public_view_stats"].includes(name) ? values : (values[0] ?? null),
-          );
+          return json(200, meta.proretset ? values : (values[0] ?? null));
         }
         if (!url.pathname.startsWith("/rest/v1/"))
           return json(404, { message: "Fixture path missing" });
@@ -258,6 +258,10 @@ createServer((req, res) => {
           if (op === "fts") {
             binds.push(v);
             return `${c} @@ plainto_tsquery('simple',$${binds.length})`;
+          }
+          if (op.startsWith("wfts")) {
+            binds.push(v);
+            return `${c} @@ websearch_to_tsquery('simple',$${binds.length})`;
           }
           if (op.startsWith("plfts")) {
             binds.push(v);

@@ -70,3 +70,13 @@ npx supabase db push --skip-vault
 ```
 
 Review the dry-run order and project ref before applying. No config.toml Vault values are needed for this project, so --skip-vault avoids unrelated secret changes. Do not repair/edit the ledger merely to mark unapplied SQL as complete. Recheck RLS/advisors, Auth identity, APIs, Storage and actual Cron execution afterward.
+
+## Stage 4 activation (current)
+
+See STAGE_4_REPORT.md for the authoritative live migration state; earlier deployment sections are historical. There is no Vercel Preview URL. The seven remaining Stage 3 migrations precede the three Stage 4 migrations. A limited security-grant hotfix is already live. Do not use migration repair to claim pending functions exist; inspect the actual ledger and apply reviewed SQL via a restored connection.
+
+Keep root `/` for Vercel. Configure the existing Supabase/public URL, service key, RATE_LIMIT_SECRET, PIN_PEPPER and canonical URL, then the server-only AI/Telegram variables listed in .env.example. AI_BASE_URL must come from actual provider documentation, never a guessed BotKeep endpoint. Both environment AI_ENABLED and database enabled policy are required. Never set MAYSTROON_TEST_FIXTURE/AI_ALLOW_TEST_HTTP in deployment.
+
+The Python service needs a separate persistent HTTPS worker host and the repository-root Docker build context. See TELEGRAM_BOT.md and BOTKEEP_INTEGRATION.md. Vercel handles bounded requests only; the bot worker drives indexing/notifications through signed calls, and existing central publishing Cron remains the sole scheduler. Confirm database retention/digest Cron was actually installed before relying on it. Protect previews with isolated data, verify health/direct routes/mobile and run real linking/media/role/publishing/provider tests before production acceptance.
+
+Repeated local builds exposed a Turbopack persistent-cache panic. The documented `turbopackFileSystemCacheForBuild: false` option disables build disk reuse; it does not disable application/public caching. Clean and repeated production builds must both pass.

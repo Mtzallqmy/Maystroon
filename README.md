@@ -2,6 +2,8 @@
 
 منصة تحريرية عربية RTL — معتز العلقمي، اليمن، تعز، 2026.
 
+الحالة الحالية: تنفيذ المرحلة الرابعة على الفرع `stage-4-telegram-ai-automation`، مع تكاملات خارجية غير مفعلة بعد. راجع [التقرير الحالي](docs/STAGE_4_REPORT.md) و[Pull Request #4](https://github.com/Mtzallqmy/Maystroon/pull/4). تقارير المراحل السابقة تاريخية، ولا تثبت اكتمال النشر أو إعداد المالك.
+
 ## التشغيل
 
 ```sh
@@ -38,3 +40,9 @@ Guides: docs/CMS_ARCHITECTURE.md, EDITOR_GUIDE.md, MEDIA_MANAGEMENT.md, PUBLISHI
 The `stage-3-admin-security-control-center` branch extends the same app with current database RBAC, protected owner PIN proofs, one-use invitations, administrative revocation, scoped dashboards/analytics/CSV, settings/identity/home/menu/advertisement controls, security/audit/notifications, explicit integration/backup states and maintenance. See [Stage 3 report](docs/STAGE_3_REPORT.md), [owner activation](docs/OWNER_SECURITY.md), [permissions](docs/RBAC_PERMISSIONS.md) and [administration](docs/ADMIN_ARCHITECTURE.md). No default owner/PIN, production fixtures, Telegram bot or Stage 4 integration is created.
 
 `npm run test:cms` also runs control-center desktop/mobile integration tests. Auth/Storage remain local protocol fixtures; SQL permissions/transactions run against the real migrations. Production acceptance still requires confirmed owner bootstrap, deployment server secrets, SMTP/real Auth checks and an available Vercel connection.
+
+## Stage 4 automation
+
+The root Next.js app shares publishing/RBAC with `services/telegram-bot` (Python/aiogram), `packages/ai` and `packages/contracts`. No replacement repository or web app was created. See [Telegram operations](docs/TELEGRAM_BOT.md), [AI architecture](docs/AI_ARCHITECTURE.md), [provider activation](docs/AI_PROVIDERS.md), [RAG](docs/RAG_PIPELINE.md) and [usage/privacy](docs/AI_PRIVACY.md).
+
+Install `services/telegram-bot/requirements-dev.lock` in an activated Python 3.12+ virtual environment, then run `npm run lint:python` and `npm run test:python`. CI runs Node and Python checks. Browser integration additionally launches a deterministic local AI HTTP protocol fixture; it is never a production provider. Real external activation remains blocked as described in the current report.

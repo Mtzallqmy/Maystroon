@@ -391,3 +391,118 @@ it("Telegram wizard creates, reviews, publishes and schedules through canonical 
   );
   expect(scheduledAden("2027-01-01 09:00")).toBe("2027-01-01T06:00:00.000Z");
 });
+it("usage finalization is service-only and cannot release a reservation twice", async () => {
+  await db.exec("reset role;update ai_configuration set enabled=true");
+  const id = randomUUID();
+  await service("ai_reserve", {
+    p_id: id,
+    p_session: "d".repeat(64),
+    p_visitor: "e".repeat(64),
+    p_user: null,
+    p_provider: "fixture",
+    p_model: "model",
+    p_type: "embedding",
+    p_tokens: 1000,
+  });
+  await actor();
+  await expect(
+    db.query("select ai_usage_finish($1,1,1,'reported',1,'success',null)", [
+      id,
+    ]),
+  ).rejects.toThrow("permission denied");
+  await service("ai_usage_finish", {
+    p_id: id,
+    p_input: 120,
+    p_output: 40,
+    p_accuracy: "reported",
+    p_latency: 30,
+    p_status: "success",
+    p_error: null,
+  });
+  await service("ai_usage_finish", {
+    p_id: id,
+    p_input: 1,
+    p_output: 1,
+    p_accuracy: "reported",
+    p_latency: 1,
+    p_status: "success",
+    p_error: null,
+  });
+  await db.exec("reset role");
+  expect(
+    await sql(
+      "select reserved_tokens::int v from ai_usage where request_id=$1",
+      [id],
+    ),
+  ).toBe(160);
+});
+it("cached summaries become unavailable immediately on source edits and unpublishing", async () => {
+  await db.exec("reset role");
+  const id = await sql<string>(
+    "insert into posts(title,slug,status,published_at) values('مصدر','cache-source','published',now()) returning id v",
+  );
+  const put = () =>
+    service("ai_cache_put", {
+      p_key: "fixture-cache",
+      p_post: id,
+      p_version: 1,
+      p_model: "test",
+      p_result: { answer: "ملخص" },
+    });
+  const get = () =>
+    service("ai_cache_get", {
+      p_key: "fixture-cache",
+      p_post: id,
+      p_version: 1,
+    });
+  await put();
+  expect(await get()).toEqual({ answer: "ملخص" });
+  await db.exec("reset role");
+  await db.query("update posts set content='تعديل المصدر' where id=$1", [id]);
+  expect(await get()).toBeNull();
+  await put();
+  await db.exec("reset role");
+  await db.query("update posts set status='unpublished' where id=$1", [id]);
+  expect(await get()).toBeNull();
+});
+it("gateway nonce is accepted only once and never by a public caller", async () => {
+  await db.exec("reset role;delete from private.gateway_nonces;set role anon");
+  await expect(
+    db.query("select automation_nonce($1)", ["f".repeat(64)]),
+  ).rejects.toThrow("permission denied");
+  expect(await service("automation_nonce", { p_hash: "f".repeat(64) })).toBe(
+    true,
+  );
+  expect(await service("automation_nonce", { p_hash: "f".repeat(64) })).toBe(
+    false,
+  );
+});
+it("outbox scrubs private output when authorization scope changes after enqueue", async () => {
+  await link();
+  await actor();
+  const fingerprint = await sql<string>("select md5(admin_identity()::text) v");
+  await db.exec("reset role");
+  await db.query(
+    "insert into telegram_deliveries(dedupe_key,user_id,telegram_id,body) values('scope-change',$1,1001,$2)",
+    [
+      owner,
+      JSON.stringify({ text: "نص إداري خاص", auth_fingerprint: fingerprint }),
+    ],
+  );
+  await db.query(
+    "update admin_memberships set scope_mode='restricted',category_ids='{}' where user_id=$1",
+    [owner],
+  );
+  await service("telegram_claim_deliveries");
+  await db.exec("reset role");
+  expect(
+    await sql(
+      "select body v from telegram_deliveries where dedupe_key='scope-change'",
+    ),
+  ).toEqual({});
+  expect(
+    await sql(
+      "select last_error v from telegram_deliveries where dedupe_key='scope-change'",
+    ),
+  ).toBe("ACCESS_REVOKED");
+});

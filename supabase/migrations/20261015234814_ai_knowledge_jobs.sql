@@ -217,3 +217,10 @@ end $$;
 revoke all on function private.automation_failed_notification() from public,anon,authenticated;
 drop trigger if exists automation_failed_notification on public.automation_jobs;
 create trigger automation_failed_notification after update of status on public.automation_jobs for each row execute function private.automation_failed_notification();
+
+create or replace function public.ai_usage_finish(p_id uuid,p_input int,p_output int,p_accuracy text,p_latency int,p_status text,p_error text) returns void language plpgsql security definer set search_path='' as $$
+begin
+ if p_status not in ('success','failed','cancelled') or p_accuracy not in ('reported','estimated') or p_input<0 or p_output<0 or p_latency<0 then raise exception 'INVALID_USAGE';end if;
+ update public.ai_usage set input_tokens=p_input,output_tokens=p_output,token_accuracy=p_accuracy,latency_ms=p_latency,status=p_status,error_code=case when p_error is null then null else left(regexp_replace(p_error,'[^A-Z0-9_]','','g'),80) end,finished_at=now(),reserved_tokens=case when p_accuracy='reported' and p_input is not null and p_output is not null then greatest(1,p_input+p_output) else reserved_tokens end where request_id=p_id and status='reserved';
+end $$;
+revoke all on function public.ai_usage_finish(uuid,int,int,text,int,text,text) from public,anon,authenticated;grant execute on function public.ai_usage_finish(uuid,int,int,text,int,text,text) to service_role;

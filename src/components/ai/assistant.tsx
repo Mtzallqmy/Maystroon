@@ -41,7 +41,9 @@ export default function Assistant({
     [type, setType] = useState<(typeof summaryTypes)[number]>("short");
   const [retryAvailable, setRetryAvailable] = useState(false);
   const controller = useRef<AbortController | null>(null),
-    last = useRef<{ text: string; summary: boolean } | null>(null),
+    last = useRef<{ text: string; summary: boolean; related?: boolean } | null>(
+      null,
+    ),
     output = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const abort = new AbortController();
@@ -64,13 +66,13 @@ export default function Assistant({
         : "smooth",
     });
   }, [entries, busy]);
-  async function ask(text: string, summary = false) {
+  async function ask(text: string, summary = false, related = false) {
     if (busy) return;
     if (summary && !postId) {
       setError("افتح تدوينة لاستخدام تلخيص المقال.");
       return;
     }
-    last.current = { text, summary };
+    last.current = { text, summary, related };
     setRetryAvailable(true);
     setError("");
     setBusy(true);
@@ -80,18 +82,24 @@ export default function Assistant({
     controller.current = abort;
     try {
       const response = await fetch(
-        summary ? "/api/v1/ai/summarize" : "/api/v1/ai/chat",
+        related
+          ? "/api/v1/ai/search"
+          : summary
+            ? "/api/v1/ai/summarize"
+            : "/api/v1/ai/chat",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(
-            summary
-              ? { post_id: postId, type, stream: state?.streaming }
-              : {
-                  message: text,
-                  ...(postId ? { post_id: postId } : {}),
-                  stream: state?.streaming,
-                },
+            related
+              ? { message: "مقالات مشابهة", related_post_id: postId }
+              : summary
+                ? { post_id: postId, type, stream: state?.streaming }
+                : {
+                    message: text,
+                    ...(postId ? { post_id: postId } : {}),
+                    stream: state?.streaming,
+                  },
           ),
           signal: abort.signal,
         },
@@ -194,7 +202,19 @@ export default function Assistant({
           >
             اشرح هذا الموضوع
           </button>
+          <button
+            disabled={!state?.enabled || busy}
+            onClick={() => ask("اعرض مقالات مشابهة", false, true)}
+          >
+            اعرض مقالات مشابهة
+          </button>
         </div>
+      )}
+      {postId && (
+        <p className="muted">
+          في التدوينات الطويلة، يقتصر الملخص على المقاطع المسترجعة؛ راجع النص
+          الكامل.
+        </p>
       )}
       <div
         ref={output}
@@ -288,7 +308,12 @@ export default function Assistant({
               type="button"
               disabled={busy}
               onClick={() =>
-                last.current && ask(last.current.text, last.current.summary)
+                last.current &&
+                ask(
+                  last.current.text,
+                  last.current.summary,
+                  last.current.related,
+                )
               }
             >
               إعادة المحاولة

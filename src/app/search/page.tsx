@@ -4,6 +4,7 @@ import { posts } from "@/lib/content";
 import { databaseConfigured } from "@/lib/env";
 import { Empty, PostCard } from "@/components/content";
 import Link from "next/link";
+import { HybridSearch } from "@/components/ai/search";
 export const metadata = { title: "البحث", robots: { index: false } };
 export default async function Search({
   searchParams,
@@ -76,6 +77,7 @@ export default async function Search({
           بحث
         </button>
       </form>
+      {p.q && <HybridSearch query={p.q.slice(0, 100)} />}
       {result?.data.length ? (
         <>
           <div className="grid">
