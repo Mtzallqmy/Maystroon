@@ -37,9 +37,11 @@ After deployment verify direct routes, API, mobile/desktop, empty states, sessio
 
 ## Current connection
 
+**2026-10-18 update:** all 48 source migrations now match the live ledger and have been applied successfully. Stage 3/4 partial-schema notes below describe earlier checkpoints. See [Stage 5 report](STAGE_5_REPORT.md) for current verification and launch blockers. The Vercel connection is present but returns 403 for the intended team; no deployment URL has been verified.
+
 The database project URL is in `.env.example` and `supabase/project.json`; keys are not committed. Local smoke checks used an ignored `.env.local` with the project's publishable key. Next.js service role, RATE_LIMIT_SECRET and PIN_PEPPER still require secure server environment configuration. Until then public database reads and pages work, but limited application API/auth actions fail closed. Health exposes database/API configuration separately and returns 503 unless both are ready.
 
-Migration filenames match the six remote history versions. The first file is an audit ledger marker for a one-time teardown, deliberately a no-op for fresh installs; its actual reviewed destructive SQL is in operations and must never be run against the new platform. Subsequent migrations reproduce the new schema and policies. Supabase Edge function source uses Deno and is excluded from the Next.js TypeScript program.
+Migration filenames match all 48 remote history versions. The first file is an audit ledger marker for a one-time teardown, deliberately a no-op for fresh installs; its actual reviewed destructive SQL is in operations and must never be run against the new platform. Subsequent migrations reproduce the new schema and policies. Supabase Edge function source uses Deno and is excluded from the Next.js TypeScript program.
 
 ## Stage 2 activation
 
@@ -57,9 +59,9 @@ Set PIN_PEPPER independently of rate-limit/cron keys. Enable HTTPS so Auth/proof
 
 The control-retention Cron is independent of content scheduling. Check cron.job_run_details for actual success; a configured schedule alone is not evidence of a successful backup or task run. Vercel Preview remains contingent on an available official repository integration and valid environment settings.
 
-### Remaining migrations after the connector failure
+### Historical partial-schema checkpoint (resolved)
 
-Only control_01_admin_schema and control_02_admin_default_grants are recorded live for Stage 3. Their file timestamps match the server ledger. The remaining 17 files sort after them and replay successfully in local PostgreSQL tests. Do not deploy Stage 3 against this partial schema.
+At the earlier connector failure, only control_01_admin_schema and control_02_admin_default_grants had been recorded live for Stage 3. This gap was resolved in Stage 5; inspect the current ledger before any further migration command.
 
 After restoring an authorized Supabase connection, inspect the migration history first. A trusted operator may use the current CLI (credentials through its secure login/password flow, never chat or shell-history arguments):
 
@@ -71,12 +73,16 @@ npx supabase db push --skip-vault
 
 Review the dry-run order and project ref before applying. No config.toml Vault values are needed for this project, so --skip-vault avoids unrelated secret changes. Do not repair/edit the ledger merely to mark unapplied SQL as complete. Recheck RLS/advisors, Auth identity, APIs, Storage and actual Cron execution afterward.
 
-## Stage 4 activation (current)
+## Stage 4 activation
 
-See STAGE_4_REPORT.md for the authoritative live migration state; earlier deployment sections are historical. There is no Vercel Preview URL. The seven remaining Stage 3 migrations precede the three Stage 4 migrations. A limited security-grant hotfix is already live. Do not use migration repair to claim pending functions exist; inspect the actual ledger and apply reviewed SQL via a restored connection.
+See STAGE_5_REPORT.md for the current live migration state; STAGE_4_REPORT.md describes an earlier checkpoint. All migrations and the limited security-grant hotfix are live. There is no verified Vercel Preview URL. Do not use migration repair to claim functions exist; inspect the actual ledger before applying further SQL.
 
 Keep root `/` for Vercel. Configure the existing Supabase/public URL, service key, RATE_LIMIT_SECRET, PIN_PEPPER and canonical URL, then the server-only AI/Telegram variables listed in .env.example. AI_BASE_URL must come from actual provider documentation, never a guessed BotKeep endpoint. Both environment AI_ENABLED and database enabled policy are required. Never set MAYSTROON_TEST_FIXTURE/AI_ALLOW_TEST_HTTP in deployment.
 
 The Python service needs a separate persistent HTTPS worker host and the repository-root Docker build context. See TELEGRAM_BOT.md and BOTKEEP_INTEGRATION.md. Vercel handles bounded requests only; the bot worker drives indexing/notifications through signed calls, and existing central publishing Cron remains the sole scheduler. Confirm database retention/digest Cron was actually installed before relying on it. Protect previews with isolated data, verify health/direct routes/mobile and run real linking/media/role/publishing/provider tests before production acceptance.
 
 Repeated local builds exposed a Turbopack persistent-cache panic. The documented `turbopackFileSystemCacheForBuild: false` option disables build disk reuse; it does not disable application/public caching. Clean and repeated production builds must both pass.
+
+## Release preflight
+
+Run `npm run release:check` inside the securely configured web environment. For a local secret file, use `node --env-file=.env.local scripts/release-preflight.mjs`; never commit that file. Add `--telegram` when validating the bot/webhook variables. This release requires `AI_ENABLED=false` and no AI API key. The preflight validates configuration without displaying values; it does not replace a successful deployment, live database/owner/API checks, a Telegram webhook check or a restore drill.

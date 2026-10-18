@@ -72,13 +72,14 @@ test("disabled AI stays accessible and signed gateways reject visitors", async (
   request,
 }) => {
   await page.goto("/");
-  await page
-    .getByRole("button", { name: "فتح مساعد ما يسطرون", exact: true })
-    .click();
-  await expect(page.locator("#ai-panel")).toContainText("المساعد غير مفعّل");
+  await expect(
+    page.getByRole("button", { name: "فتح مساعد ما يسطرون", exact: true }),
+  ).toHaveCount(0);
+  await page.goto("/assistant");
+  await expect(
+    page.getByRole("region", { name: "مساعد ما يسطرون", exact: true }),
+  ).toContainText("المساعد غير مفعّل حالياً. يظل البحث العادي متاحاً.");
   await expect(page.getByLabel("سؤالك عن ما يسطرون")).toBeDisabled();
-  await page.keyboard.press("Escape");
-  await expect(page.locator("#ai-panel")).toHaveCount(0);
   expect((await request.get("/api/v1/ai/status")).status()).toBe(200);
   expect(
     (

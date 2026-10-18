@@ -77,7 +77,9 @@ export default async function Search({
           بحث
         </button>
       </form>
-      {p.q && <HybridSearch query={p.q.slice(0, 100)} />}
+      {process.env.AI_ENABLED === "true" && p.q && (
+        <HybridSearch query={p.q.slice(0, 100)} />
+      )}
       {result?.data.length ? (
         <>
           <div className="grid">

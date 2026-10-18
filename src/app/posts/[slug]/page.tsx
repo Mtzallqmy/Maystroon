@@ -189,7 +189,9 @@ export default async function Article({
           )}
           <Advertisements items={ads} placement="article_after" />
 
-          <SummaryLauncher postId={p.id} />
+          {process.env.AI_ENABLED === "true" && (
+            <SummaryLauncher postId={p.id} />
+          )}
           <ArticleActions
             id={p.id}
             title={p.title}

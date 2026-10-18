@@ -109,7 +109,7 @@ export default async function Layout({
             <p className="copyright">{identity.footer}</p>
           </div>
         </footer>
-        <FloatingAssistant />
+        {process.env.AI_ENABLED === "true" && <FloatingAssistant />}
       </body>
     </html>
   );

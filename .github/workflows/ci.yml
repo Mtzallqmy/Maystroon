@@ -8,6 +8,7 @@ on:
         stage-2-advanced-cms,
         stage-3-admin-security-control-center,
         stage-4-telegram-ai-automation,
+        stage-5-production-readiness,
       ]
   pull_request:
 permissions:
@@ -25,6 +26,7 @@ jobs:
       - run: npm run format:check
       - run: npm run lint
       - run: npm run test
+      - run: npm run test:release
       - run: npm run build
       - run: npm run security:client
       - run: npm run typecheck

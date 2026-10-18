@@ -1,7 +1,7 @@
 {
   "name": "maystroon",
   "version": "0.1.0",
-  "description": "Arabic editorial platform — Stage 4 automation",
+  "description": "Arabic editorial platform — production readiness",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -16,7 +16,9 @@
     "security:client": "node scripts/check-client-secrets.mjs",
     "test:cms": "playwright test --config playwright.cms.config.ts",
     "test:python": "PYTHONPATH=services/telegram-bot python -m unittest discover -s services/telegram-bot/tests -v",
-    "lint:python": "python -m ruff check services/telegram-bot && python -m ruff format --check services/telegram-bot"
+    "lint:python": "python -m ruff check services/telegram-bot && python -m ruff format --check services/telegram-bot",
+    "release:check": "node scripts/release-preflight.mjs",
+    "test:release": "node --test scripts/release-preflight.test.mjs"
   },
   "repository": {
     "type": "git",
